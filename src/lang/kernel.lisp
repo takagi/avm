@@ -144,7 +144,7 @@
   (unless (kernel-function-exists-p kernel name)
     (error "The function ~S is undefined." name))
   (let ((namespace (kernel-function-namespace kernel)))
-    (get namespace name)))
+    (getf namespace name)))
 
 (defun kernel-function-name (kernel name)
   (function-name (%lookup-function kernel name)))
