@@ -43,18 +43,16 @@
 (defun compile-reference (form venv tenv fenv)
   (declare (ignore fenv))
   (let* ((type (query-typenv form tenv))
-         (form1
-          (cond
-            ((or (scalar-type-p type)
-                 (array-type-p type))
-             (if (varenv-exists-p form venv)
-                 (query-varenv form venv)
-                 `(the ,(compile-type type) ,form)))
-            ((vector-type-p type)
-             (let ((vars (query-varenv form venv))
-                   (vector-values* (vector-type-values* type)))
-               `(,vector-values* ,@vars)))
-            (t (error "Must not be reached.")))))
+         (form1 (cond
+                  ((or (scalar-type-p type)
+                       (array-type-p type))
+                   (let ((var (query-varenv form venv)))
+                     `(the ,(compile-type type) ,var)))
+                  ((vector-type-p type)
+                   (let ((vars (query-varenv form venv))
+                         (vector-values* (vector-type-values* type)))
+                     `(,vector-values* ,@vars)))
+                  (t (error "Must not be reached.")))))
     (values form1 type)))
 
 (defun vector-type-values* (type)
