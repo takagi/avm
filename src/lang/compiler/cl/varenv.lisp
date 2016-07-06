@@ -45,8 +45,8 @@
 
 (defun unique-var (var type)
   (cond
-    ((scalar-type-p type) (genvar var))
+    ((scalar-type-p type) (list (genvar var)))
     ((vector-type-p type) (loop repeat (vector-type-size type)
                              collect (genvar var)))
-    ((array-type-p type) (genvar var))
+    ((array-type-p type) (list (genvar var)))
     (t (error "Must not be reached."))))

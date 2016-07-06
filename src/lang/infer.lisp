@@ -11,7 +11,8 @@
         :foo.lang.syntax
         :foo.lang.built-in
         :foo.lang.unienv
-        :foo.lang.typenv)
+        :foo.lang.typenv
+        :foo.lang.funenv)
   (:export :infer))
 (in-package :foo.lang.infer)
 
@@ -96,11 +97,15 @@
                  uenv3)))))
     (let ((operator (apply-operator form))
           (operands (apply-operands form)))
-      (let ((argc (built-in-argc operator)))
+      (let ((argc (if (built-in-exists-p operator)
+                      (built-in-argc operator)
+                      (funenv-argc operator fenv))))
         (unless (= argc (length operands))
           (error "Invalid number of arguments: ~S" (length operands))))
-      (let* ((type-scheme (built-in-type-scheme operator))
-             (type (type-scheme-to-type type-scheme)))
+      (let ((type (if (built-in-exists-p operator)
+                      (type-scheme-to-type
+                       (built-in-type-scheme operator))
+                      (funenv-type operator fenv))))
         (let ((argtypes (type-arg-types type))
               (return-type (type-return-type type)))
           (let* ((uenv1 (reduce #'aux (mapcar #'cons argtypes operands)

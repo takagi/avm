@@ -12,6 +12,7 @@
         :foo.lang.syntax
         :foo.lang.built-in
         :foo.lang.typenv
+        :foo.lang.funenv
         :foo.lang.compiler.cl.varenv)
   (:export :compile-form))
 (in-package :foo.lang.compiler.cl.compile-form)
@@ -47,7 +48,7 @@
                   ((or (scalar-type-p type)
                        (array-type-p type))
                    (let ((var (query-varenv form venv)))
-                     `(the ,(compile-type type) ,var)))
+                     `(the ,(compile-type type) ,@var)))
                   ((vector-type-p type)
                    (let ((vars (query-varenv form venv))
                          (vector-values* (vector-type-values* type)))
@@ -101,7 +102,7 @@
                          (cond
                            ((or (scalar-type-p type)
                                 (array-type-p type))
-                            `(let ((,var1 ,value1))
+                            `(let ((,@var1 ,value1))
                                ,(aux bindings1 body venv2 tenv2)))
                            ((vector-type-p type)
                             `(multiple-value-bind ,var1 ,value1
@@ -123,7 +124,8 @@
 (defun compile-apply (form venv tenv fenv)
   (let ((operator (apply-operator form)))
     (if (built-in-exists-p operator)
-        (compile-built-in-apply form venv tenv fenv))))
+        (compile-built-in-apply form venv tenv fenv)
+        (compile-user-apply form venv tenv fenv))))
 
 (defun compile-built-in-apply (form venv tenv fenv)
   (let ((operator (apply-operator form))
@@ -150,10 +152,36 @@
            (values `(the ,(compile-type type) (,operator1 ,@operands1)) type))
           (t (error "Must not be reached.")))))))
 
-(defun compile-function-name (name)
-  (let ((symbol-name (symbol-name name))
-        (symbol-package (symbol-package name)))
-    (intern (format nil "%~A" symbol-name) symbol-package)))
+(defun compile-user-apply (form venv tenv fenv)
+  (labels ((aux (operands args venv1 operator args0)
+             (if operands
+                 (destructuring-bind (operand . operands1) operands
+                   (destructuring-bind (arg . args1) args
+                     (multiple-value-bind (operand1 type)
+                         (compile-form operand venv tenv fenv)
+                       (multiple-value-bind (venv2 arg1)
+                           (extend-varenv arg type venv1)
+                         (cond
+                           ((or (scalar-type-p type)
+                                (array-type-p type))
+                            `(let ((,@arg1 ,operand1))
+                               ,(aux operands1 args1 venv2 operator args0)))
+                           ((vector-type-p type)
+                            `(multiple-value-bind ,arg1 ,operand1
+                               ,(aux operands1 args1 venv2 operator args0)))
+                           (t (error "Must not be reached.")))))))
+                 (let ((vars (loop for arg in args0
+                                  append (query-varenv arg venv1))))
+                   `(,operator ,@vars)))))
+    (let ((operator (apply-operator form))
+          (operands (apply-operands form)))
+      (let ((argc (funenv-argc operator fenv)))
+        (unless (= argc (length operands))
+          (error "Invalid number of arguments: ~S" (length operands))))
+      (let* ((args (funenv-arguments operator fenv))
+             (form1 (aux operands args venv operator args))
+             (return-type (funenv-return-type operator fenv)))
+        (values form1 return-type)))))
 
 (defun compile-type (type)
   (cl-pattern:match type

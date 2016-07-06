@@ -30,6 +30,7 @@
                    (:file "syntax")
                    (:file "built-in")
                    (:file "binarize")
+                   (:file "convert-functions")
                    (:file "unienv")
                    (:file "typenv")
                    (:file "funenv")

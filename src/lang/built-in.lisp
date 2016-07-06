@@ -11,6 +11,7 @@
            :built-in-arithmetic-p
            :built-in-arithmetic-left-assoc-p
            :built-in-arithmetic-right-assoc-p
+           :built-in-exists-p
            :built-in-type-scheme
            :built-in-argc
            :built-in-operator
@@ -34,6 +35,10 @@
 
 (defun built-in-arithmetic-right-assoc-p (name)
   (eq name '.*))
+
+(defun built-in-exists-p (name)
+  (and (assoc name (built-in-functions :cl))
+       t))
 
 (defun built-in-type-scheme (name)
   (cons :type-scheme

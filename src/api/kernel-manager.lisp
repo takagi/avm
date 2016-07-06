@@ -8,6 +8,7 @@
   (:use :cl
         :foo
         :foo.lang
+        :foo.lang.type
         :foo.lang.kernel)
   (:export :make-kernel-manager
            :*kernel-manager*
@@ -38,16 +39,20 @@
     (error "The argument N is reserved."))
   ;; Compile and define kernel function.
   (let ((kernel (kernel-manager-kernel manager))
-        (args1 (cons 'i (cons 'n args))))
+        (args1 (append '(i n) args)))
     ;; Compile kernel function.
-    (multiple-value-bind (name1 type form)
+    (multiple-value-bind (name1 type args2 form)
         (compile-kernel-function :cl name args1 body kernel)
       ;; Define kernel function to kernel.
       (kernel-define-function kernel name1 type args1 body)
       ;; Return compiled form.
       (values name1
-              `(defun ,name1 (,@args1)
+              (include-vector-type-p type)
+              `(defun ,name1 (,@args2)
                  (declare (optimize (speed 3) (safety 0)))
-                 (declare (ignorable ,@args1))
-                 (declare (type fixnum i n))
+                 (declare (ignorable ,@args2))
+                 (declare (type fixnum ,@(subseq args2 0 2)))
                  ,form)))))
+
+(defun include-vector-type-p (type)
+  (some #'vector-type-p (butlast type)))
