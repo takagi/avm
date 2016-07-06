@@ -51,7 +51,7 @@
   (infer-apply form tenv uenv fenv))
 
 (defun infer-the (form tenv uenv fenv)
-  (let ((type (the-type form))
+  (let ((type (parse-type (the-type form)))
         (value (the-value form)))
     (multiple-value-bind (type1 uenv1) (infer value tenv uenv fenv)
       (unify type type1 uenv1))))

@@ -108,7 +108,7 @@
 
 (defun the-type (form)
   (cl-pattern:match form
-    (('the type _) (parse-type type))
+    (('the type _) type)
     (_ (error "The form ~S is malformed." form))))
 
 (defun the-value (form)
