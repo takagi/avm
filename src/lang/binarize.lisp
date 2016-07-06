@@ -27,5 +27,4 @@
                 (destructuring-bind (a2 a1 . rest) (reverse args)
                   (binarize `(,op ,@(reverse rest)
                                   (,op ,(binarize a1) ,(binarize a2)))))))
-          (destructuring-bind (op . rest) form
-            `(,op ,@(mapcar #'binarize rest))))))
+          (mapcar #'binarize form))))
