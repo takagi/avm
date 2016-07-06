@@ -6,4 +6,4 @@
 *.x86f
 *~
 .#*
-**/.DS_Store
+.DS_Store
