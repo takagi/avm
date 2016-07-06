@@ -121,6 +121,11 @@
         (values `(setf ,place1 ,value1) type)))))
 
 (defun compile-apply (form venv tenv fenv)
+  (let ((operator (apply-operator form)))
+    (if (built-in-exists-p operator)
+        (compile-built-in-apply form venv tenv fenv))))
+
+(defun compile-built-in-apply (form venv tenv fenv)
   (let ((operator (apply-operator form))
         (operands (apply-operands form)))
     (let ((argc (built-in-argc operator)))
