@@ -21,8 +21,7 @@
 (in-package :foo.lang.compiler.cl.lang)
 
 
-(defun %extend-arguments (kernel args typenv)
-  (declare (ignore kernel))
+(defun %extend-arguments-typenv (args typenv)
   (flet ((aux (typenv1 arg)
            (let ((type (gentype)))
              (extend-typenv arg type typenv1))))
@@ -41,9 +40,9 @@
 ;;     (reduce #'aux (kernel-global-names kernel) :initial-value typenv)))
 
 (defun kernel->typenv (kernel args)
-  (%extend-arguments kernel args
-;   (%extend-constants kernel
-;    (%extend-globals kernel
+  (%extend-arguments-typenv args
+;   (%extend-constants-typenv kernel
+;    (%extend-globals-typenv kernel
      (empty-typenv)));))
 
 ;; (defun %extend-functions (kernel funenv)
