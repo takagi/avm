@@ -16,6 +16,7 @@
         :foo.lang.unienv
         :foo.lang.funenv
         :foo.lang.infer
+        :foo.lang.compiler.cl.compile-type
         :foo.lang.compiler.cl.varenv
         :foo.lang.compiler.cl.compile-form
         ))
@@ -92,7 +93,16 @@
                   (args1 (loop for arg in args
                             append (query-varenv arg venv)))
                   (body2 (compile-form body1 venv tenv1 fenv)))
-              (values name1 type args1 body2)))))))
+              (values name1 type
+                      `(defun ,name1 ,args1
+                         (declare (optimize (speed 3) (safety 0)))
+                         (declare (ignore ,@args1))
+                         ,@(loop for arg1 in args1
+                                 for type1 in type
+                              collect
+                                `(declare (type ,(compile-type type1) ,arg1)))
+                         ,body2))))))))
+
 
 (defmethod compile-kernel-global (kernel name (engine (eql :cl)))
   nil)

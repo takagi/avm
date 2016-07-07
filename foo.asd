@@ -44,6 +44,7 @@
                       :serial t
                       :components
                       ((:file "built-in")
+                       (:file "compile-type")
                        (:file "varenv")
                        (:file "compile-form")
                        (:file "lang")))))))

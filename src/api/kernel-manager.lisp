@@ -41,18 +41,12 @@
   (let ((kernel (kernel-manager-kernel manager))
         (args1 (append '(i n) args)))
     ;; Compile kernel function.
-    (multiple-value-bind (name1 type args2 form)
+    (multiple-value-bind (name1 type form)
         (compile-kernel-function :cl name args1 body kernel)
       ;; Define kernel function to kernel.
       (kernel-define-function kernel name1 type args1 body)
       ;; Return compiled form.
-      (values name1
-              (include-vector-type-p type)
-              `(defun ,name1 (,@args2)
-                 (declare (optimize (speed 3) (safety 0)))
-                 (declare (ignorable ,@args2))
-                 (declare (type fixnum ,@(subseq args2 0 2)))
-                 ,form)))))
+      (values name1 (include-vector-type-p type) form))))
 
 (defun include-vector-type-p (type)
   (some #'vector-type-p (butlast type)))

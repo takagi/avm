@@ -13,6 +13,7 @@
         :foo.lang.built-in
         :foo.lang.typenv
         :foo.lang.funenv
+        :foo.lang.compiler.cl.compile-type
         :foo.lang.compiler.cl.varenv)
   (:export :compile-form))
 (in-package :foo.lang.compiler.cl.compile-form)
@@ -182,27 +183,3 @@
              (form1 (aux operands args venv operator args))
              (return-type (funenv-return-type operator fenv)))
         (values form1 return-type)))))
-
-(defun compile-type (type)
-  (cl-pattern:match type
-    ('bool 'boolean)
-    ('int 'fixnum)
-    ('float 'single-float)
-    ('double 'double-float)
-    ((:vector _ _) (error "Not implemented."))
-    ((:array type1)
-     (cl-pattern:match type1
-       ('int 'int-array)
-       ('float 'float-array)
-       ('double 'double-array)
-       ((:vector 'int 2) 'int2-array)
-       ((:vector 'int 3) 'int3-array)
-       ((:vector 'int 4) 'int4-array)
-       ((:vector 'float 2) 'float2-array)
-       ((:vector 'float 3) 'float3-array)
-       ((:vector 'float 4) 'float4-array)
-       ((:vector 'double 2) 'double2-array)
-       ((:vector 'double 3) 'double3-array)
-       ((:vector 'double 4) 'double4-array)
-       (_ (error "Must not be reached."))))
-    (_ (error "Must not be reached."))))
