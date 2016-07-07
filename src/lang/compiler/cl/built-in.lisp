@@ -45,7 +45,7 @@
     (* (a a a) (((int int int) *)
                 ((float float float) *)
                 ((double double double) *)))
-    (/ (a a a) (;;((int int int) /)
+    (/ (a a a) (((int int int) floor)
                 ((float float float) /)
                 ((double double double) /)))
     (*. ((:vector a b) a (:vector a b))
