@@ -185,6 +185,7 @@
 
 (defun compile-type (type)
   (cl-pattern:match type
+    ('bool 'boolean)
     ('int 'fixnum)
     ('float 'single-float)
     ('double 'double-float)
