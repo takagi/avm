@@ -50,6 +50,14 @@
 ;    (%extend-globals-typenv kernel
      (empty-typenv)));))
 
+(defun %extend-self (name args typenv funenv)
+  (let ((name1 (convert-function-name name :cl))
+        (type (append
+               (loop for arg in args
+                  collect (query-typenv arg typenv))
+               (list (gentype)))))
+    (extend-funenv name1 type args funenv)))
+
 (defun %extend-functions (kernel funenv)
   (flet ((aux (funenv1 name)
            (let ((type (kernel-function-type kernel name))
@@ -58,9 +66,10 @@
     (reduce #'aux (kernel-function-names kernel)
             :initial-value funenv)))
 
-(defun kernel->funenv (kernel)
-  (%extend-functions kernel
-   (empty-funenv)))
+(defun kernel->funenv (kernel name args typenv)
+  (%extend-self name args typenv
+   (%extend-functions kernel
+    (empty-funenv))))
 
 (defun %extend-arguments-varenv (args typenv varenv)
   (flet ((aux (varenv1 arg)
@@ -78,9 +87,9 @@
   (let ((body1 (convert-functions :cl
                 (binarize body))))
     ;; Type inference.
-    (let ((tenv (kernel->typenv kernel args))
-          (uenv (empty-unienv))
-          (fenv (kernel->funenv kernel)))
+    (let* ((tenv (kernel->typenv kernel args))
+           (uenv (empty-unienv))
+           (fenv (kernel->funenv kernel name args tenv)))
         (multiple-value-bind (return-type uenv1) (infer body1 tenv uenv fenv)
           ;; Compilation.
           (let* ((tenv1 (subst-typenv uenv1 tenv))
