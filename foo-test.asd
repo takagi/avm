@@ -15,7 +15,18 @@
                :prove)
   :components ((:module "t"
                 :components
-                ((:test-file "foo"))))
+                ((:test-file "foo")
+                 (:module "lang"
+                  :serial t
+                  :components
+                  ((:module "compiler"
+                    :serial t
+                    :components
+                    ((:module "cl"
+                      :serial t
+                      :components
+                      ((:test-file "compile-form")
+                       )))))))))
   :description "Test system for foo"
 
   :defsystem-depends-on (:prove-asdf)

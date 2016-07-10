@@ -44,18 +44,20 @@
 
 (defun compile-reference (form venv tenv fenv)
   (declare (ignore fenv))
-  (let* ((type (query-typenv form tenv))
-         (form1 (cond
-                  ((or (scalar-type-p type)
-                       (array-type-p type))
-                   (let ((var (query-varenv form venv)))
-                     `(the ,(compile-type type) ,@var)))
-                  ((vector-type-p type)
-                   (let ((vars (query-varenv form venv))
-                         (vector-values* (vector-type-values* type)))
-                     `(,vector-values* ,@vars)))
-                  (t (error "Must not be reached.")))))
-    (values form1 type)))
+  (let ((type (query-typenv form tenv)))
+    (cond
+      ((scalar-type-p type)
+       (let ((form1 (car (query-varenv form venv))))
+         (values form1 type)))
+      ((vector-type-p type)
+       (let* ((vars (query-varenv form venv))
+              (vector-values* (vector-type-values* type))
+              (form1 `(,vector-values* ,@vars)))
+         (values form1 type)))
+      ((array-type-p type)
+       (let ((form1 (car (query-varenv form venv))))
+         (values form1 type)))
+      (t (error "Must not be reached.")))))
 
 (defun vector-type-values* (type)
   (cl-pattern:match type
@@ -92,27 +94,36 @@
           (values `(if ,test-form1 ,then-form1 ,else-form1) type))))))
 
 (defun compile-let (form venv tenv fenv)
-  (labels ((aux (bindings body venv1 tenv1)
-             (if bindings
-                 (destructuring-bind ((var value) . bindings1) bindings
-                   (multiple-value-bind (value1 type)
-                       (compile-form value venv tenv fenv)
-                     (let ((tenv2 (extend-typenv var type tenv1)))
-                       (multiple-value-bind (venv2 var1)
-                           (extend-varenv var type venv1)
-                         (cond
-                           ((or (scalar-type-p type)
-                                (array-type-p type))
-                            `(let ((,@var1 ,value1))
-                               ,(aux bindings1 body venv2 tenv2)))
-                           ((vector-type-p type)
-                            `(multiple-value-bind ,var1 ,value1
-                               ,(aux bindings1 body venv2 tenv2)))
-                           (t (error "Must not be reached.")))))))
-                 (compile-form body venv1 tenv1 fenv))))
-    (let ((bindings (let-bindings form))
-          (body (let-body form)))
-      (aux bindings body venv tenv))))
+  (let ((bindings (let-bindings form))
+        (body (let-body form)))
+    (%compile-let bindings body venv tenv fenv venv tenv)))
+
+(defun %compile-let (bindings body venv tenv fenv venv1 tenv1)
+  (if bindings
+      (destructuring-bind ((var value) . bindings1) bindings
+        (multiple-value-bind (value1 type) (compile-form value venv tenv fenv)
+          (let ((tenv2 (extend-typenv var type tenv1)))
+            (multiple-value-bind (venv2 vars) (extend-varenv var type venv1)
+              (cond
+                ;; Scalar type and array type.
+                ((or (scalar-type-p type)
+                     (array-type-p type))
+                 (let ((type1 (compile-type type)))
+                   `(let ((,@vars ,value1))
+                      (declare (type ,type1 ,@vars))
+                      ,(%compile-let bindings1 body
+                                     venv tenv fenv venv2 tenv2))))
+                ;; Vector type.
+                ((vector-type-p type)
+                 (let ((type1 (compile-type (vector-type-base-type type))))
+                   `(multiple-value-bind ,vars ,value1
+                      ,@(loop for var1 in vars
+                           collect
+                             `(declare (type ,type1 ,var1)))
+                      ,(%compile-let bindings1 body venv
+                                     tenv fenv venv2 tenv2))))
+                (t (error "Must not be reached.")))))))
+      (compile-form body venv1 tenv1 fenv)))
 
 (defun compile-set (form venv tenv fenv)
   (let ((place (set-place form))
