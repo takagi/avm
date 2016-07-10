@@ -105,7 +105,7 @@
               (values name1 type
                       `(defun ,name1 ,args1
                          (declare (optimize (speed 3) (safety 0)))
-                         (declare (ignore ,@args1))
+                         (declare (ignorable ,@args1))
                          ,@(loop for arg1 in args1
                                  for type1 in type
                               collect
