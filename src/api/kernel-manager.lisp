@@ -49,4 +49,4 @@
       (values name1 (include-vector-type-p type) form))))
 
 (defun include-vector-type-p (type)
-  (some #'vector-type-p (butlast type)))
+  (some #'vector-type-p (function-arg-types type)))

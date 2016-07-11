@@ -19,6 +19,9 @@
            :array-type-base-type
            :type-variable-p
            :type-wildcard-p
+           ;; Type of functions
+           :function-arg-types
+           :function-return-type
            ;; Parse
            :parse-type
            :unparse-type
@@ -92,6 +95,16 @@
 (defun type-wildcard-p (object)
   (and (foo-symbol-p object)
        (string= object "_")))
+
+
+;;
+;; Type of functions
+
+(defun function-arg-types (function-type)
+  (butlast function-type))
+
+(defun function-return-type (function-type)
+  (car (last function-type)))
 
 
 ;;

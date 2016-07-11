@@ -106,15 +106,9 @@
                       (type-scheme-to-type
                        (built-in-type-scheme operator))
                       (funenv-type operator fenv))))
-        (let ((argtypes (type-arg-types type))
-              (return-type (type-return-type type)))
+        (let ((argtypes (function-arg-types type))
+              (return-type (function-return-type type)))
           (let* ((uenv1 (reduce #'aux (mapcar #'cons argtypes operands)
                                 :initial-value uenv))
                  (type1 (query-unienv return-type uenv1)))
             (values type1 uenv1)))))))
-
-(defun type-arg-types (type)
-  (butlast type))
-
-(defun type-return-type (type)
-  (car (last type)))

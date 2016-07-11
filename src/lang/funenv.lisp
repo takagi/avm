@@ -44,10 +44,10 @@
       (error "The function ~S not defined." name)))
 
 (defun funenv-arg-types (name fenv)
-  (butlast (funenv-type name fenv)))
+  (function-arg-types (funenv-type name fenv)))
 
 (defun funenv-return-type (name fenv)
-  (car (last (funenv-type name fenv))))
+  (function-return-type (funenv-type name fenv)))
 
 (defun funenv-arguments (name fenv)
   (or (caddr (assoc name fenv))

@@ -6,7 +6,8 @@
 (in-package :cl-user)
 (defpackage foo.lang.built-in
   (:use :cl
-        :foo)
+        :foo
+        :foo.lang.type)
   (:export :built-in-functions
            :built-in-arithmetic-p
            :built-in-arithmetic-left-assoc-p
@@ -54,18 +55,12 @@
 
 (defun built-in-elected (name argtypes)
   (or (assoc argtypes (built-in-candidates name)
-             :key #'butlast :test #'equal)
+             :key #'function-arg-types :test #'equal)
       (error "The function ~S is not defined." name)))
 
 (defun built-in-operator (name argtypes)
   (cadr (built-in-elected name argtypes)))
 
 (defun built-in-return-type (name argtypes)
-  (type-return-type
+  (function-return-type
    (car (built-in-elected name argtypes))))
-
-(defun type-arg-types (type)
-  (butlast type))
-
-(defun type-return-type (type)
-  (car (last type)))
