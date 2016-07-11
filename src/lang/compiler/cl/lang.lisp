@@ -53,10 +53,10 @@
 
 (defun %extend-self (name args typenv funenv)
   (let ((name1 (convert-function-name name :cl))
-        (type (append
-               (loop for arg in args
-                  collect (query-typenv arg typenv))
-               (list (gentype)))))
+        (type (let ((arg-types
+                     (loop for arg in args
+                        collect (query-typenv arg typenv))))
+                (make-function-type arg-types (gentype)))))
     (extend-funenv name1 type args funenv)))
 
 (defun %extend-functions (kernel funenv)
@@ -99,10 +99,11 @@
                  (aenv2 (subst-appenv uenv1 aenv1))
                  (venv (kernel->varenv args tenv1)))
             (let ((name1 (convert-function-name name :cl))
-                  (type (append
-                         (loop for arg in args
-                            collect (query-typenv arg tenv1))
-                         (list return-type)))
+                  (type (let ((arg-types
+                               (loop for arg in args
+                                  collect
+                                    (query-typenv arg tenv1))))
+                          (make-function-type arg-types return-type)))
                   (args1 (loop for arg in args
                             append (query-varenv arg venv)))
                   (body2 (compile-form body1 venv tenv1 aenv2 fenv)))

@@ -22,6 +22,7 @@
            ;; Type of functions
            :function-type
            :function-type-p
+           :make-function-type
            :function-arg-types
            :function-return-type
            ;; Parse
@@ -107,6 +108,12 @@
 
 (defun function-type-p (type)
   (every #'foo-type-p type))
+
+(defun make-function-type (arg-types return-type)
+  (dolist (arg-type arg-types)
+    (check-type arg-type foo-type))
+  (check-type return-type foo-type)
+  (append arg-types (list return-type)))
 
 (defun function-arg-types (function-type)
   (butlast function-type))
