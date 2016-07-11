@@ -31,8 +31,8 @@
   (or (cdr (assoc var tenv))
       (error "The variable ~S not found." var)))
 
-(defun subst-typenv (unienv tenv)
+(defun subst-typenv (uenv tenv)
   (loop for (var . type) in tenv
      collect
-       (let ((type1 (query-unienv type unienv)))
+       (let ((type1 (query-unienv type uenv)))
          (cons var type1))))
