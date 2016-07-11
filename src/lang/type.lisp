@@ -20,6 +20,8 @@
            :type-variable-p
            :type-wildcard-p
            ;; Type of functions
+           :function-type
+           :function-type-p
            :function-arg-types
            :function-return-type
            ;; Parse
@@ -99,6 +101,12 @@
 
 ;;
 ;; Type of functions
+
+(deftype function-type ()
+  '(satisfies function-type-p))
+
+(defun function-type-p (type)
+  (every #'foo-type-p type))
 
 (defun function-arg-types (function-type)
   (butlast function-type))

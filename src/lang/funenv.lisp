@@ -27,8 +27,7 @@
 
 (defun extend-funenv (name type arguments fenv)
   (check-type name foo-symbol)
-  (loop for type1 in type
-     do (check-type type1 foo-type))
+  (check-type type function-type)
   (loop for arg in arguments
      do (check-type arg foo-symbol))
   (assert (= (1- (length type)) (length arguments)))

@@ -42,8 +42,7 @@
 
 (defun make-function (name type arguments body)
   (check-type name foo-symbol)
-  (loop for ty in type
-     do (check-type ty foo-type))
+  (check-type type function-type)
   (loop for argument in arguments
      do (check-type argument foo-symbol))
   (unless (= (1- (length type)) (length arguments))
