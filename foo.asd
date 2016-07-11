@@ -33,6 +33,7 @@
                    (:file "convert-functions")
                    (:file "unienv")
                    (:file "typenv")
+                   (:file "appenv")
                    (:file "funenv")
                    (:file "infer")
                    (:file "kernel")
