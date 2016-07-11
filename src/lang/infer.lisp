@@ -110,5 +110,5 @@
               (return-type (function-return-type type)))
           (let* ((uenv1 (reduce #'aux (mapcar #'cons argtypes operands)
                                 :initial-value uenv))
-                 (type1 (query-unienv return-type uenv1)))
-            (values type1 uenv1)))))))
+                 (return-type1 (query-unienv return-type uenv1)))
+            (values return-type1 uenv1)))))))
