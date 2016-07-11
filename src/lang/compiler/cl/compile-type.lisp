@@ -17,7 +17,10 @@
     ('int 'fixnum)
     ('float 'single-float)
     ('double 'double-float)
-    ((:vector _ _) (error "Not implemented."))
+    ((:vector base-type size)
+     (let ((base-type1 (compile-type base-type)))
+       `(values ,@(loop repeat size
+                     collect base-type1))))
     ((:array type1)
      (cl-pattern:match type1
        ('int 'int-array)

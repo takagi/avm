@@ -107,9 +107,10 @@
                          (declare (optimize (speed 3) (safety 0)))
                          (declare (ignorable ,@args1))
                          ,@(loop for arg1 in args1
-                                 for type1 in type
+                                 for arg-type in type
                               collect
-                                `(declare (type ,(compile-type type1) ,arg1)))
+                                (let ((arg-type1 (compile-type arg-type)))
+                                  `(declare (type ,arg-type1 ,arg1))))
                          ,body2))))))))
 
 
