@@ -14,6 +14,7 @@
         :foo.lang.convert-functions
         :foo.lang.typenv
         :foo.lang.unienv
+        :foo.lang.appenv
         :foo.lang.funenv
         :foo.lang.infer
         :foo.lang.compiler.cl.compile-type
@@ -88,11 +89,14 @@
                 (binarize body))))
     ;; Type inference.
     (let* ((tenv (kernel->typenv kernel args))
+           (aenv (empty-appenv))
            (uenv (empty-unienv))
            (fenv (kernel->funenv kernel name args tenv)))
-        (multiple-value-bind (return-type uenv1) (infer body1 tenv uenv fenv)
+        (multiple-value-bind (return-type aenv1 uenv1)
+            (infer body1 tenv aenv uenv fenv)
           ;; Compilation.
           (let* ((tenv1 (subst-typenv uenv1 tenv))
+                 (aenv2 (subst-appenv uenv1 aenv1))
                  (venv (kernel->varenv args tenv1)))
             (let ((name1 (convert-function-name name :cl))
                   (type (append
@@ -101,7 +105,7 @@
                          (list return-type)))
                   (args1 (loop for arg in args
                             append (query-varenv arg venv)))
-                  (body2 (compile-form body1 venv tenv1 fenv)))
+                  (body2 (compile-form body1 venv tenv1 aenv2 fenv)))
               (values name1 type
                       `(defun ,name1 ,args1
                          (declare (optimize (speed 3) (safety 0)))

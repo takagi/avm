@@ -16,7 +16,6 @@
            :built-in-type-scheme
            :built-in-argc
            :built-in-operator
-           :built-in-return-type
            ))
 (in-package :foo.lang.built-in)
 
@@ -53,14 +52,9 @@
   (or (caddr (assoc name (built-in-functions :cl)))
       (error "The function ~S is not defined." name)))
 
-(defun built-in-elected (name argtypes)
-  (or (assoc argtypes (built-in-candidates name)
-             :key #'function-arg-types :test #'equal)
+(defun built-in-elected (name function-type)
+  (or (assoc function-type (built-in-candidates name) :test #'equal)
       (error "The function ~S is not defined." name)))
 
-(defun built-in-operator (name argtypes)
-  (cadr (built-in-elected name argtypes)))
-
-(defun built-in-return-type (name argtypes)
-  (function-return-type
-   (car (built-in-elected name argtypes))))
+(defun built-in-operator (name function-type)
+  (cadr (built-in-elected name function-type)))
