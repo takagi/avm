@@ -25,7 +25,7 @@
                     ((:module "cl"
                       :serial t
                       :components
-                      ((:test-file "compile-form")
+                      ((:test-file "compile")
                        )))))))))
   :description "Test system for foo"
 

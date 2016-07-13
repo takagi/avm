@@ -20,7 +20,7 @@
         :foo.lang.infer
         :foo.lang.compiler.cl.compile-type
         :foo.lang.compiler.cl.varenv
-        :foo.lang.compiler.cl.compile-form
+        :foo.lang.compiler.cl.compile
         ))
 (in-package :foo.lang.compiler.cl.lang)
 

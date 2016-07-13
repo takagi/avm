@@ -48,7 +48,7 @@
                       ((:file "built-in")
                        (:file "compile-type")
                        (:file "varenv")
-                       (:file "compile-form")
+                       (:file "compile")
                        (:file "lang")))))))
                  (:module "api"
                   :serial t

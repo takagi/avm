@@ -4,7 +4,7 @@
 |#
 
 (in-package :cl-user)
-(defpackage foo.lang.compiler.cl.compile-form
+(defpackage foo.lang.compiler.cl.compile
   (:use :cl
         :foo
         :foo.lang.data
@@ -17,7 +17,7 @@
         :foo.lang.compiler.cl.compile-type
         :foo.lang.compiler.cl.varenv)
   (:export :compile-function))
-(in-package :foo.lang.compiler.cl.compile-form)
+(in-package :foo.lang.compiler.cl.compile)
 
 
 ;;

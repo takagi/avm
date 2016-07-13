@@ -4,7 +4,7 @@
 |#
 
 (in-package :cl-user)
-(defpackage foo-test.lang.compiler.cl.compile-form
+(defpackage foo-test.lang.compiler.cl.compile
   (:use :cl
         :prove
         :foo
@@ -12,8 +12,8 @@
         :foo.lang.appenv
         :foo.lang.funenv
         :foo.lang.compiler.cl.varenv
-        :foo.lang.compiler.cl.compile-form))
-(in-package :foo-test.lang.compiler.cl.compile-form)
+        :foo.lang.compiler.cl.compile))
+(in-package :foo-test.lang.compiler.cl.compile)
 
 
 (plan nil)
@@ -28,7 +28,7 @@
      ,@body))
 
 (setf (fdefinition 'compile-form)
-      #'foo.lang.compiler.cl.compile-form::compile-form)
+      #'foo.lang.compiler.cl.compile::compile-form)
 
 
 (subtest "LET"
