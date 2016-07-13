@@ -1,21 +1,21 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo.lang.infer
+(defpackage avm.lang.infer
   (:use :cl
-        :foo
-        :foo.lang.type
-        :foo.lang.syntax
-        :foo.lang.built-in
-        :foo.lang.unienv
-        :foo.lang.typenv
-        :foo.lang.appenv
-        :foo.lang.funenv)
+        :avm
+        :avm.lang.type
+        :avm.lang.syntax
+        :avm.lang.built-in
+        :avm.lang.unienv
+        :avm.lang.typenv
+        :avm.lang.appenv
+        :avm.lang.funenv)
   (:export :infer-function))
-(in-package :foo.lang.infer)
+(in-package :avm.lang.infer)
 
 
 ;;

@@ -1,14 +1,14 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo-asd
+(defpackage avm-asd
   (:use :cl :asdf))
-(in-package :foo-asd)
+(in-package :avm-asd)
 
-(defsystem foo
+(defsystem avm
   :version "0.1"
   :author "Masayuki Takagi"
   :license "MIT"
@@ -20,7 +20,7 @@
   :components ((:module "src"
                 :serial t
                 :components
-                ((:file "foo")
+                ((:file "avm")
                  (:module "lang"
                   :serial t
                   :components
@@ -70,4 +70,4 @@
                                :fill-pointer t)))
           (setf (fill-pointer seq) (read-sequence seq stream))
           seq)))
-  :in-order-to ((test-op (test-op foo-test))))
+  :in-order-to ((test-op (test-op avm-test))))

@@ -1,16 +1,16 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo.lang
+(defpackage avm.lang
   (:use :cl)
   (:export :compile-kernel-function
            :compile-kernel-global
            :compile-kernel-constant
            ))
-(in-package :foo.lang)
+(in-package :avm.lang)
 
 
 ;;

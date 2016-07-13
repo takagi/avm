@@ -1,14 +1,14 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo.lang.kernel
+(defpackage avm.lang.kernel
   (:use :cl
-        :foo
-        :foo.lang.symbol
-        :foo.lang.type)
+        :avm
+        :avm.lang.symbol
+        :avm.lang.type)
   (:shadow :function)
   (:import-from :alexandria
                 :with-gensyms)
@@ -29,7 +29,7 @@
            ;; Constants
            ;; Symbol macros.
            ))
-(in-package :foo.lang.kernel)
+(in-package :avm.lang.kernel)
 
 
 ;;
@@ -43,11 +43,11 @@
   (body :body :read-only t))
 
 (defun make-function (name cl-name type arguments body)
-  (check-type name foo-symbol)
+  (check-type name avm-symbol)
   (check-type cl-name symbol)
   (check-type type function-type)
   (loop for argument in arguments
-     do (check-type argument foo-symbol))
+     do (check-type argument avm-symbol))
   (unless (= (1- (length type)) (length arguments))
     (error "Invalid number of arguments against type: ~S" (length arguments)))
   (%make-function :name name
@@ -67,9 +67,9 @@
   (expander :expander :read-only t))
 
 (defun make-macro (name arguments body)
-  (check-type name foo-symbol)
+  (check-type name avm-symbol)
   (loop for argument in arguments
-     do (check-type argument foo-symbol))
+     do (check-type argument avm-symbol))
   (with-gensyms (arguments1)
     (let ((expander (eval `#'(lambda (,arguments1)
                                (destructuring-bind ,arguments ,arguments1
@@ -86,7 +86,7 @@
   (value :value :read-only t))
 
 (defun make-global (name value)
-  (check-type name foo-symbol)
+  (check-type name avm-symbol)
   (%make-global :name name :value value))
 
 
@@ -98,7 +98,7 @@
   (value :value :read-only t))
 
 (defun make-constant (name value)
-  (check-type name foo-symbol)
+  (check-type name avm-symbol)
   (%make-constant :name name :value value))
 
 
@@ -110,7 +110,7 @@
   (expansion :expansion :read-only t))
 
 (defun make-symbol-macro (name expansion)
-  (check-type name foo-symbol)
+  (check-type name avm-symbol)
   (%make-symbol-macro :name name :expansion expansion))
 
 

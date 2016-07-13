@@ -1,20 +1,20 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo.api.kernel-manager
+(defpackage avm.api.kernel-manager
   (:use :cl
-        :foo
-        :foo.lang
-        :foo.lang.type
-        :foo.lang.kernel)
+        :avm
+        :avm.lang
+        :avm.lang.type
+        :avm.lang.kernel)
   (:export :make-kernel-manager
            :*kernel-manager*
            :kernel-manager-define-function
            ))
-(in-package :foo.api.kernel-manager)
+(in-package :avm.api.kernel-manager)
 
 
 ;;

@@ -1,19 +1,19 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo.lang.appenv
+(defpackage avm.lang.appenv
   (:use :cl
-        :foo.lang.symbol
-        :foo.lang.type
-        :foo.lang.unienv)
+        :avm.lang.symbol
+        :avm.lang.type
+        :avm.lang.unienv)
   (:export :empty-appenv
            :extend-appenv
            :query-appenv
            :subst-appenv))
-(in-package :foo.lang.appenv)
+(in-package :avm.lang.appenv)
 
 
 ;;

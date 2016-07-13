@@ -1,14 +1,14 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo.samples.vector-add
+(defpackage avm.samples.vector-add
   (:use :cl
-        :foo)
+        :avm)
   (:export :main))
-(in-package :foo.samples.vector-add)
+(in-package :avm.samples.vector-add)
 
 
 (defkernel vector-add (c a b)

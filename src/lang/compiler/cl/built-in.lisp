@@ -1,16 +1,16 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo.lang.compiler.cl.built-in
+(defpackage avm.lang.compiler.cl.built-in
   (:use :cl
-        :foo
-        :foo.lang.data
-        :foo.lang.built-in)
+        :avm
+        :avm.lang.data
+        :avm.lang.built-in)
   (:export))
-(in-package :foo.lang.compiler.cl.built-in)
+(in-package :avm.lang.compiler.cl.built-in)
 
 
 (defmethod built-in-functions ((engine (eql :cl)))

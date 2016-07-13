@@ -1,28 +1,28 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo.lang.compiler.cl.lang
+(defpackage avm.lang.compiler.cl.lang
   (:use :cl
-        :foo
-        :foo.lang
-        :foo.lang.type
-        :foo.lang.kernel
-        :foo.lang.binarize
-        :foo.lang.convert-functions
-        :foo.lang.free-variable
-        :foo.lang.typenv
-        :foo.lang.unienv
-        :foo.lang.appenv
-        :foo.lang.funenv
-        :foo.lang.infer
-        :foo.lang.compiler.cl.compile-type
-        :foo.lang.compiler.cl.varenv
-        :foo.lang.compiler.cl.compile
+        :avm
+        :avm.lang
+        :avm.lang.type
+        :avm.lang.kernel
+        :avm.lang.binarize
+        :avm.lang.convert-functions
+        :avm.lang.free-variable
+        :avm.lang.typenv
+        :avm.lang.unienv
+        :avm.lang.appenv
+        :avm.lang.funenv
+        :avm.lang.infer
+        :avm.lang.compiler.cl.compile-type
+        :avm.lang.compiler.cl.varenv
+        :avm.lang.compiler.cl.compile
         ))
-(in-package :foo.lang.compiler.cl.lang)
+(in-package :avm.lang.compiler.cl.lang)
 
 
 (defun kernel->vars (kernel)

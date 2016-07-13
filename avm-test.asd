@@ -1,21 +1,21 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo-test-asd
+(defpackage avm-test-asd
   (:use :cl :asdf))
-(in-package :foo-test-asd)
+(in-package :avm-test-asd)
 
-(defsystem foo-test
+(defsystem avm-test
   :author "Masayuki Takagi"
   :license "MIT"
-  :depends-on (:foo
+  :depends-on (:avm
                :prove)
   :components ((:module "t"
                 :components
-                ((:test-file "foo")
+                ((:test-file "avm")
                  (:module "lang"
                   :serial t
                   :components
@@ -27,7 +27,7 @@
                       :components
                       ((:test-file "compile")
                        )))))))))
-  :description "Test system for foo"
+  :description "Test system for avm"
 
   :defsystem-depends-on (:prove-asdf)
   :perform (test-op :after (op c)

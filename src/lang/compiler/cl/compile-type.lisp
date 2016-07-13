@@ -1,14 +1,14 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo.lang.compiler.cl.compile-type
+(defpackage avm.lang.compiler.cl.compile-type
   (:use :cl
-        :foo)
+        :avm)
   (:export :compile-type))
-(in-package :foo.lang.compiler.cl.compile-type)
+(in-package :avm.lang.compiler.cl.compile-type)
 
 
 (defun compile-type (type)

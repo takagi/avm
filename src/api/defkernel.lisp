@@ -1,17 +1,17 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo.api.defkernel
+(defpackage avm.api.defkernel
   (:use :cl
-        :foo
-        :foo.api.array
-        :foo.api.kernel-manager)
+        :avm
+        :avm.api.array
+        :avm.api.kernel-manager)
   (:export :defkernel
            :*use-thread-p*))
-(in-package :foo.api.defkernel)
+(in-package :avm.api.defkernel)
 
 
 ;;

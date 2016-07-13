@@ -1,16 +1,16 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo.lang.convert-functions
+(defpackage avm.lang.convert-functions
   (:use :cl
-        :foo
-        :foo.lang.syntax
-        :foo.lang.built-in)
+        :avm
+        :avm.lang.syntax
+        :avm.lang.built-in)
   (:export :convert-functions))
-(in-package :foo.lang.convert-functions)
+(in-package :avm.lang.convert-functions)
 
 
 ;;

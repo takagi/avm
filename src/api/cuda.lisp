@@ -1,15 +1,15 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo.api.cuda
+(defpackage avm.api.cuda
   (:use :cl
-        :foo)
+        :avm)
   (:export :with-cuda
            :*use-cuda-p*))
-(in-package :foo.api.cuda)
+(in-package :avm.api.cuda)
 
 
 ;;

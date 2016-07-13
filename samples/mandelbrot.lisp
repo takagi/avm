@@ -1,14 +1,14 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo.samples.mandelbrot
+(defpackage avm.samples.mandelbrot
   (:use :cl
-        :foo)
+        :avm)
   (:export :main))
-(in-package :foo.samples.mandelbrot)
+(in-package :avm.samples.mandelbrot)
 
 
 ;(defkernel-symbol-macro nmax 100)

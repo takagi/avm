@@ -1,24 +1,24 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo.lang.compiler.cl.compile
+(defpackage avm.lang.compiler.cl.compile
   (:use :cl
-        :foo
-        :foo.lang.data
-        :foo.lang.type
-        :foo.lang.syntax
-        :foo.lang.built-in
-        :foo.lang.typenv
-        :foo.lang.appenv
-        :foo.lang.funenv
-        :foo.lang.compiler.cl.compile-type
-        :foo.lang.compiler.cl.varenv)
+        :avm
+        :avm.lang.data
+        :avm.lang.type
+        :avm.lang.syntax
+        :avm.lang.built-in
+        :avm.lang.typenv
+        :avm.lang.appenv
+        :avm.lang.funenv
+        :avm.lang.compiler.cl.compile-type
+        :avm.lang.compiler.cl.varenv)
   (:export :compile-function
            :*genname-counter*))
-(in-package :foo.lang.compiler.cl.compile)
+(in-package :avm.lang.compiler.cl.compile)
 
 
 ;;

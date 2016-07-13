@@ -1,16 +1,16 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo.lang.type
+(defpackage avm.lang.type
   (:use :cl
-        :foo
-        :foo.lang.symbol)
+        :avm
+        :avm.lang.symbol)
   (:export ;; Type
-           :foo-type
-           :foo-type-p
+           :avm-type
+           :avm-type-p
            :scalar-type-p
            :vector-type-p
            :vector-type-base-type
@@ -37,16 +37,16 @@
            ;; Type scheme to type
            :type-scheme-to-type
            ))
-(in-package :foo.lang.type)
+(in-package :avm.lang.type)
 
 
 ;;
 ;; Type
 
-(deftype foo-type ()
-  '(satisfies foo-type-p))
+(deftype avm-type ()
+  '(satisfies avm-type-p))
 
-(defun foo-type-p (object)
+(defun avm-type-p (object)
   (or (scalar-type-p object)
       (vector-type-p object)
       (array-type-p object)
@@ -97,7 +97,7 @@
        (not (type-wildcard-p object))))
 
 (defun type-wildcard-p (object)
-  (and (foo-symbol-p object)
+  (and (avm-symbol-p object)
        (string= object "_")))
 
 
@@ -108,12 +108,12 @@
   '(satisfies function-type-p))
 
 (defun function-type-p (type)
-  (every #'foo-type-p type))
+  (every #'avm-type-p type))
 
 (defun make-function-type (arg-types return-type)
   (dolist (arg-type arg-types)
-    (check-type arg-type foo-type))
-  (check-type return-type foo-type)
+    (check-type arg-type avm-type))
+  (check-type return-type avm-type)
   (append arg-types (list return-type)))
 
 (defun function-arg-types (function-type)
@@ -210,7 +210,7 @@
     (_ nil)))
 
 (defun type-scheme-variable-p (object)
-  (and (foo-symbol-p object)
+  (and (avm-symbol-p object)
        (not (type-variable-p object))
        (not (type-wildcard-p object))))
 

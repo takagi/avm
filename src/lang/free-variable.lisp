@@ -1,15 +1,15 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo.lang.free-variable
+(defpackage avm.lang.free-variable
   (:use :cl
-        :foo
-        :foo.lang.syntax)
+        :avm
+        :avm.lang.syntax)
   (:export :check-free-variable))
-(in-package :foo.lang.free-variable)
+(in-package :avm.lang.free-variable)
 
 
 ;;

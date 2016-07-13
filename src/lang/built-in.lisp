@@ -1,13 +1,13 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo.lang.built-in
+(defpackage avm.lang.built-in
   (:use :cl
-        :foo
-        :foo.lang.type)
+        :avm
+        :avm.lang.type)
   (:export :built-in-functions
            :built-in-arithmetic-p
            :built-in-arithmetic-left-assoc-p
@@ -17,7 +17,7 @@
            :built-in-argc
            :built-in-operator
            ))
-(in-package :foo.lang.built-in)
+(in-package :avm.lang.built-in)
 
 
 ;;

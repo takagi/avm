@@ -1,14 +1,14 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo.lang.syntax
+(defpackage avm.lang.syntax
   (:use :cl
-        :foo
-        :foo.lang.symbol
-        :foo.lang.type)
+        :avm
+        :avm.lang.symbol
+        :avm.lang.type)
   (:export ;; Literal
            :literal-p
            :int-literal-p
@@ -50,7 +50,7 @@
            :apply-operator
            :apply-operands
            ))
-(in-package :foo.lang.syntax)
+(in-package :avm.lang.syntax)
 
 
 ;;
@@ -75,7 +75,7 @@
 ;; Reference
 
 (defun reference-p (object)
-  (foo-symbol-p object))
+  (avm-symbol-p object))
 
 
 ;;
@@ -169,7 +169,7 @@
 
 (defun binding-p (object)
   (cl-pattern:match object
-    ((var _) (foo-symbol-p var))
+    ((var _) (avm-symbol-p var))
     (_ nil)))
 
 (defun find-duplicate (xs)
@@ -205,8 +205,8 @@
 
 (defun fbinding-p (object)
   (cl-pattern:match object
-    ((name args _) (and (foo-symbol-p name)
-                        (every #'foo-symbol-p args)))
+    ((name args _) (and (avm-symbol-p name)
+                        (every #'avm-symbol-p args)))
     (_ nil)))
 
 (defun flet-body (form)

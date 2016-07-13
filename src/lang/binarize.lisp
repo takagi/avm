@@ -1,15 +1,15 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo.lang.binarize
+(defpackage avm.lang.binarize
   (:use :cl
-        :foo
-        :foo.lang.built-in)
+        :avm
+        :avm.lang.built-in)
   (:export :binarize))
-(in-package :foo.lang.binarize)
+(in-package :avm.lang.binarize)
 
 
 ;;

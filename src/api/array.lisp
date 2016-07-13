@@ -1,16 +1,16 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo.api.array
+(defpackage avm.api.array
   (:use :cl
-        :foo
-        :foo.lang.data)
+        :avm
+        :avm.lang.data)
   (:import-from :alexandria
                 :once-only)
-  (:export :foo-array
+  (:export :avm-array
            :array-p
            :alloc-array
            :free-array
@@ -24,7 +24,7 @@
            :set-array-dirty
            :array-ensure-lisp-up-to-date
            ))
-(in-package :foo.api.array)
+(in-package :avm.api.array)
 
 
 ;;
@@ -146,7 +146,7 @@
 ;;
 ;; Array
 
-(defstruct (foo-array (:constructor %make-farray)
+(defstruct (avm-array (:constructor %make-farray)
                       (:conc-name array-)
                       (:predicate array-p))
   (base-type :base-type :read-only t)
@@ -244,10 +244,10 @@
   (setf (array-lisp-up-to-date array) t)
   nil)
 
-(defun set-array-dirty (array foo)
-  (setf (array-lisp-up-to-date array) (eq foo :lisp))
-  (setf (array-host-up-to-date array) (eq foo :host))
-  (setf (array-device-up-to-date array) (eq foo :device)))
+(defun set-array-dirty (array avm)
+  (setf (array-lisp-up-to-date array) (eq avm :lisp))
+  (setf (array-host-up-to-date array) (eq avm :host))
+  (setf (array-device-up-to-date array) (eq avm :device)))
 
 (defun array-ensure-lisp-up-to-date (array)
   (when (not (array-lisp-up-to-date array))

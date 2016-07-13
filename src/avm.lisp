@@ -1,10 +1,10 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo
+(defpackage avm
   (:use :cl)
   (:export ;; Types
            :bool
@@ -39,7 +39,7 @@
            :with-cuda
            :*use-cuda-p*
            ;; Arrays
-           :foo-array
+           :avm-array
            :array-p
            :alloc-array
            :free-array
@@ -48,6 +48,6 @@
            :array-aref
            :array-size
            ))
-(in-package :foo)
+(in-package :avm)
 
 ;; blah blah blah.

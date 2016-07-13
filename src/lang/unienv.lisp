@@ -1,19 +1,19 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo.lang.unienv
+(defpackage avm.lang.unienv
   (:use :cl
-        :foo.lang.type)
+        :avm.lang.type)
   (:import-from :cl-unification
                 :make-empty-environment
                 :find-variable-value)
   (:export :empty-unienv
            :query-unienv
            :unify))
-(in-package :foo.lang.unienv)
+(in-package :avm.lang.unienv)
 
 
 ;;
@@ -23,7 +23,7 @@
   (list nil nil (make-empty-environment)))
 
 (defun query-unienv (type uenv)
-  (check-type type foo-type)
+  (check-type type avm-type)
   (cond
     ((scalar-type-p type) type)
     ((vector-type-p type)
@@ -46,7 +46,7 @@
     (t (error "Must not be reached."))))
 
 (defun %query-unienv (size uenv)
-  (assert (foo.lang.type::vector-type-size-p size))
+  (assert (avm.lang.type::vector-type-size-p size))
   (if (type-variable-p size)
       (destructuring-bind (lhs rhs subst) uenv
         (declare (ignore lhs rhs))
@@ -57,8 +57,8 @@
       size))
 
 (defun unify (type1 type2 uenv)
-  (check-type type1 foo-type)
-  (check-type type2 foo-type)
+  (check-type type1 avm-type)
+  (check-type type2 avm-type)
   (destructuring-bind (lhs rhs subst) uenv
     (let* ((lhs1 (cons type1 lhs))
            (rhs1 (cons type2 rhs))

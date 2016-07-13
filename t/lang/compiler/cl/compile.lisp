@@ -1,19 +1,19 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo-test.lang.compiler.cl.compile
+(defpackage avm-test.lang.compiler.cl.compile
   (:use :cl
         :prove
-        :foo
-        :foo.lang.typenv
-        :foo.lang.appenv
-        :foo.lang.funenv
-        :foo.lang.compiler.cl.varenv
-        :foo.lang.compiler.cl.compile))
-(in-package :foo-test.lang.compiler.cl.compile)
+        :avm
+        :avm.lang.typenv
+        :avm.lang.appenv
+        :avm.lang.funenv
+        :avm.lang.compiler.cl.varenv
+        :avm.lang.compiler.cl.compile))
+(in-package :avm-test.lang.compiler.cl.compile)
 
 
 (plan nil)
@@ -28,7 +28,7 @@
      ,@body))
 
 (setf (fdefinition 'compile-form)
-      #'foo.lang.compiler.cl.compile::compile-form)
+      #'avm.lang.compiler.cl.compile::compile-form)
 
 
 (subtest "LET"
@@ -45,10 +45,10 @@
            (extend-appenv '#1=(int2 1 1) '(int int (:vector int 2)) aenv)))
       (is (compile-form '(let ((x #1#)) x) venv tenv aenv1 fenv)
           '(multiple-value-bind (x0 x1)
-               (the (values fixnum fixnum) (foo.lang.data::int2-values* 1 1))
+               (the (values fixnum fixnum) (avm.lang.data::int2-values* 1 1))
              (declare (type fixnum x0))
              (declare (type fixnum x1))
-             (foo.lang.data::int2-values* x0 x1))
+             (avm.lang.data::int2-values* x0 x1))
           "Ok - Vector type.")))
 
   (with-env (tenv aenv fenv venv)
@@ -67,7 +67,7 @@
           '(let ((x0 1))
              (declare (type fixnum x0))
              (multiple-value-bind (y1 y2)
-                 (the (values fixnum fixnum) (foo.lang.data::int2-values* 1 1))
+                 (the (values fixnum fixnum) (avm.lang.data::int2-values* 1 1))
                (declare (type fixnum y1))
                (declare (type fixnum y2))
                x0))
@@ -79,7 +79,7 @@
   (with-env (tenv aenv fenv venv)
     (let ((aenv1 (extend-appenv '#1=(coerce 1) '(int double) aenv)))
       (is (compile-form '#1# venv tenv aenv1 fenv)
-          '(the double-float (foo.lang.compiler.cl.built-in::int->double 1))
+          '(the double-float (avm.lang.compiler.cl.built-in::int->double 1))
           "Ok.")))
 
   (with-env (tenv aenv fenv venv)

@@ -1,15 +1,15 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo.lang.data
+(defpackage avm.lang.data
   (:use :cl
         :cl-tuples
-        :foo)
+        :avm)
   (:export))                       ; Symbols are exported via EXPORTs.
-(in-package :foo.lang.data)
+(in-package :avm.lang.data)
 
 
 ;;
@@ -38,17 +38,17 @@
   (defun type-elements (type)
     (subseq '(x y z w) 0 (type-size type)))
 
-  (defun type-foo (type foo)
-    (intern (format nil "~A-~A" type foo) #.*package*))
+  (defun type-avm (type avm)
+    (intern (format nil "~A-~A" type avm) #.*package*))
 
   (defun type-values* (type)
-    (type-foo type "VALUES*"))
+    (type-avm type "VALUES*"))
 
   (defun type-x* (type x)
-    (type-foo type (format nil "~A*" x)))
+    (type-avm type (format nil "~A*" x)))
 
   (defun type-aref* (type)
-    (type-foo type "AREF*"))
+    (type-avm type "AREF*"))
 
   (defun type-make-array (type)
     (intern (format nil "MAKE-~A-ARRAY" type) #.*package*))
@@ -60,22 +60,22 @@
     (intern (format nil "~A-ARRAY-DIMENSIONS" type) #.*package*))
 
   (defun type-add* (type)
-    (type-foo type "ADD*"))
+    (type-avm type "ADD*"))
 
   (defun type-sub* (type)
-    (type-foo type "SUB*"))
+    (type-avm type "SUB*"))
 
   (defun type-scale* (type)
-    (type-foo type "SCALE*"))
+    (type-avm type "SCALE*"))
 
   (defun type-%scale* (type)
-    (type-foo type "%SCALE*"))
+    (type-avm type "%SCALE*"))
 
   (defun type-scale-recip* (type)
-    (type-foo type "SCALE-RECIP*"))
+    (type-avm type "SCALE-RECIP*"))
 
   (defun type-norm* (type)
-    (type-foo type "NORM*"))
+    (type-avm type "NORM*"))
 
   (defun type-args (type i)
     (loop for arg in (type-elements type)

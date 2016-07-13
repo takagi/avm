@@ -1,20 +1,20 @@
 #|
-  This file is a part of foo project.
+  This file is a part of avm project.
   Copyright (c) 2016 Masayuki Takagi (kamonama@gmail.com)
 |#
 
 (in-package :cl-user)
-(defpackage foo.lang.compiler.cl.varenv
+(defpackage avm.lang.compiler.cl.varenv
   (:use :cl
-        :foo.lang.symbol
-        :foo.lang.type)
+        :avm.lang.symbol
+        :avm.lang.type)
   (:export :empty-varenv
            :extend-varenv
            :varenv-exists-p
            :query-varenv
            :*genvar-counter*
            ))
-(in-package :foo.lang.compiler.cl.varenv)
+(in-package :avm.lang.compiler.cl.varenv)
 
 
 ;;
@@ -24,13 +24,13 @@
   nil)
 
 (defun extend-varenv (var type venv)
-  (check-type var foo-symbol)
-  (check-type type foo-type)
+  (check-type var avm-symbol)
+  (check-type type avm-type)
   (let ((var1 (unique-var var type)))
     (values (acons var var1 venv) var1)))
 
 (defun varenv-exists-p (var venv)
-  (check-type var foo-symbol)
+  (check-type var avm-symbol)
   (and (cdr (assoc var venv))
        t))
 
