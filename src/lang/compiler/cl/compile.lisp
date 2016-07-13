@@ -16,7 +16,8 @@
         :foo.lang.funenv
         :foo.lang.compiler.cl.compile-type
         :foo.lang.compiler.cl.varenv)
-  (:export :compile-function))
+  (:export :compile-function
+           :*genname-counter*))
 (in-package :foo.lang.compiler.cl.compile)
 
 

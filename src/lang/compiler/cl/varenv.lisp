@@ -12,6 +12,7 @@
            :extend-varenv
            :varenv-exists-p
            :query-varenv
+           :*genvar-counter*
            ))
 (in-package :foo.lang.compiler.cl.varenv)
 

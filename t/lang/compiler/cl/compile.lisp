@@ -24,7 +24,7 @@
          (,aenv (empty-appenv))
          (,fenv (empty-funenv))
          (,venv (empty-varenv))
-         (foo.lang.compiler.cl.varenv::*genvar-counter* 0))
+         (*genvar-counter* 0))
      ,@body))
 
 (setf (fdefinition 'compile-form)

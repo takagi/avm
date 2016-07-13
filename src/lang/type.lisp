@@ -30,6 +30,7 @@
            :unparse-type
            ;; Gentype
            :gentype
+           :*gentype-counter*
            ;; Type scheme
            :type-scheme
            :type-scheme-p
