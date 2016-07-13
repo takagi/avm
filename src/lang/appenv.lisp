@@ -31,9 +31,9 @@
       (error "The function application ~S not found." form)))
 
 (defun subst-appenv (uenv aenv)
-  (loop for (form . type) in aenv
+  (loop for (form . ftype) in aenv
      collect
-       (let ((type1 (loop for type1 in type
-                       collect
-                         (query-unienv type1 uenv))))
-         (cons form type1))))
+       (let ((ftype1 (loop for type in ftype
+                        collect
+                          (query-unienv type uenv))))
+         (cons form ftype1))))
