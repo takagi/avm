@@ -12,6 +12,7 @@
         :foo.lang.kernel
         :foo.lang.binarize
         :foo.lang.convert-functions
+        :foo.lang.free-variable
         :foo.lang.typenv
         :foo.lang.unienv
         :foo.lang.appenv
@@ -24,13 +25,11 @@
 (in-package :foo.lang.compiler.cl.lang)
 
 
-(defun %extend-arguments-typenv (args typenv)
-  (flet ((aux (typenv1 arg)
-           (let ((type (if (member arg '(i n))
-                           'int
-                           (gentype))))
-             (extend-typenv arg type typenv1))))
-    (reduce #'aux args :initial-value typenv)))
+(defun kernel->vars (kernel)
+  (declare (ignore kernel))
+;  (%extend-constants-vars kernel
+;   (%extend-globals-vars kernel
+    nil);))
 
 ;; (defun %extend-constants-typenv (kernel typenv)
 ;;   (flet ((aux (typenv1 name)
@@ -44,80 +43,52 @@
 ;;              (extend-typenv name type typenv1))))
 ;;     (reduce #'aux (kernel-global-names kernel) :initial-value typenv)))
 
-(defun kernel->typenv (kernel args)
+(defun kernel->typenv (kernel)
   (declare (ignore kernel))
-  (%extend-arguments-typenv args
 ;   (%extend-constants-typenv kernel
 ;    (%extend-globals-typenv kernel
-     (empty-typenv)));))
-
-(defun %extend-self (name args typenv funenv)
-  (let ((name1 (convert-function-name name :cl))
-        (type (let ((arg-types
-                     (loop for arg in args
-                        collect (query-typenv arg typenv))))
-                (make-function-type arg-types (gentype)))))
-    (extend-funenv name1 type args funenv)))
+     (empty-typenv));))
 
 (defun %extend-functions (kernel funenv)
   (flet ((aux (funenv1 name)
-           (let ((type (kernel-function-type kernel name))
+           (let ((name1 (kernel-function-cl-name kernel name))
+                 (type (kernel-function-type kernel name))
                  (args (kernel-function-arguments kernel name)))
-             (extend-funenv name type args funenv1))))
+             (extend-funenv name name1 type args funenv1))))
     (reduce #'aux (kernel-function-names kernel)
             :initial-value funenv)))
 
-(defun kernel->funenv (kernel name args typenv)
-  (%extend-self name args typenv
+(defun kernel->funenv (kernel)
    (%extend-functions kernel
-    (empty-funenv))))
+    (empty-funenv)))
 
-(defun %extend-arguments-varenv (args typenv varenv)
-  (flet ((aux (varenv1 arg)
-           (let ((type (query-typenv arg typenv)))
-             (extend-varenv arg type varenv1))))
-    (reduce #'aux args :initial-value varenv)))
-
-(defun kernel->varenv (args tenv1)
-  (%extend-arguments-varenv args tenv1
-;   (%extend-constants-varenv kernel tenv1
-;    (%extend-globals-varenv kernel tenv1
-     (empty-varenv)));))
+(defun subst-ftype (uenv ftype)
+  (loop for type in ftype
+     collect (query-unienv type uenv)))
 
 (defmethod compile-kernel-function ((engine (eql :cl)) name args body kernel)
-  (let ((body1 (convert-functions :cl
+  (let ((args1 (append '(i n) args))
+        (body1 (convert-functions
                 (binarize body))))
+    ;; Check free variable existence.
+    (let ((vars (kernel->vars kernel)))
+      (check-free-variable args1 body1 vars))
     ;; Type inference.
-    (let* ((tenv (kernel->typenv kernel args))
+    (let* ((tenv (kernel->typenv kernel))
            (aenv (empty-appenv))
            (uenv (empty-unienv))
-           (fenv (kernel->funenv kernel name args tenv)))
-        (multiple-value-bind (return-type aenv1 uenv1)
-            (infer body1 tenv aenv uenv fenv)
-          ;; Compilation.
-          (let* ((tenv1 (subst-typenv uenv1 tenv))
-                 (aenv2 (subst-appenv uenv1 aenv1))
-                 (venv (kernel->varenv args tenv1)))
-            (let ((name1 (convert-function-name name :cl))
-                  (type (let ((arg-types
-                               (loop for arg in args
-                                  collect
-                                    (query-typenv arg tenv1))))
-                          (make-function-type arg-types return-type)))
-                  (args1 (loop for arg in args
-                            append (query-varenv arg venv)))
-                  (body2 (compile-form body1 venv tenv1 aenv2 fenv)))
-              (values name1 type
-                      `(defun ,name1 ,args1
-                         (declare (optimize (speed 3) (safety 0)))
-                         (declare (ignorable ,@args1))
-                         ,@(loop for arg1 in args1
-                                 for arg-type in type
-                              collect
-                                (let ((arg-type1 (compile-type arg-type)))
-                                  `(declare (type ,arg-type1 ,arg1))))
-                         ,body2))))))))
-
+           (fenv (kernel->funenv kernel)))
+      (multiple-value-bind (ftype aenv1 uenv1)
+          (infer-function name args1 body1 tenv aenv uenv fenv)
+        ;; Compilation.
+        (let ((tenv1 (subst-typenv uenv1 tenv))
+              (aenv2 (subst-appenv uenv1 aenv1))
+              (ftype1 (subst-ftype uenv1 ftype))
+              (venv (empty-varenv)))
+          (multiple-value-bind (name1 args2 body2)
+              (compile-function name ftype1 args1 body1 venv tenv1 aenv2 fenv
+                                :entry-p t :rec-p t)
+            (values name1 ftype1 args1 `(defun ,name1 ,args2 ,@body2))))))))
 
 (defmethod compile-kernel-global (kernel name (engine (eql :cl)))
   nil)

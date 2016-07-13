@@ -16,12 +16,60 @@
         :foo.lang.funenv
         :foo.lang.compiler.cl.compile-type
         :foo.lang.compiler.cl.varenv)
-  (:export :compile-form))
+  (:export :compile-function))
 (in-package :foo.lang.compiler.cl.compile-form)
 
 
 ;;
+;; Genname
+
+(defvar *genname-counter* 0)
+
+(defun genname (name)
+  (prog1 (intern (format nil "~A~A" name *genname-counter*))
+    (incf *genname-counter*)))
+
+
+;;
 ;; Compile
+
+(defun compile-function (name ftype args body venv tenv aenv fenv
+                         &key entry-p rec-p)
+  (assert (not (and entry-p (not rec-p))))
+  (let* ((name1 (compile-name name entry-p))
+         (pairs (loop for arg in args
+                      for type in (function-arg-types ftype)
+                     collect (cons arg type)))
+         (venv1 (flet ((aux (venv pair)
+                         (destructuring-bind (arg . type) pair
+                           (extend-varenv arg type venv))))
+                  (reduce #'aux pairs :initial-value venv)))
+         (tenv1 (flet ((aux (tenv pair)
+                         (destructuring-bind (arg . type) pair
+                           (extend-typenv arg type tenv))))
+                  (reduce #'aux pairs :initial-value tenv)))
+         (fenv1 (if rec-p
+                    (extend-funenv name name1 ftype args fenv)
+                    fenv)))
+    (let ((args1 (loop for arg in args
+                    append (query-varenv arg venv1)))
+          (types1 (loop for type in (function-arg-types ftype)
+                     collect (compile-type type)))
+          (body1 (compile-form body venv1 tenv1 aenv fenv1)))
+      (values name1 args1
+              `((declare (optimize (speed 3) (safety 0)))
+                (declare (ignorable ,@args1))
+                ,@(loop for arg1 in args1
+                        for type1 in types1
+                     collect `(declare (type ,type1 ,arg1)))
+                ,body1)))))
+
+(defun compile-name (name entry-p)
+  (if entry-p
+      (let ((symbol-name (symbol-name name))
+            (symbol-package (symbol-package name)))
+        (intern (format nil "%CL-~A" symbol-name) symbol-package))
+      (genname name)))
 
 (defun compile-form (form venv tenv aenv fenv)
   (cond
@@ -31,6 +79,7 @@
     ((the-p form) (compile-the form venv tenv aenv fenv))
     ((if-p form) (compile-if form venv tenv aenv fenv))
     ((let-p form) (compile-let form venv tenv aenv fenv))
+    ((flet-p form) (compile-flet form venv tenv aenv fenv))
     ((set-p form) (compile-set form venv tenv aenv fenv))
     ((apply-p form) (compile-apply form venv tenv aenv fenv))
     (t (error "The value ~S is an invalid form." form))))
@@ -127,6 +176,26 @@
                 (t (error "Must not be reached.")))))))
       (compile-form body venv1 tenv1 aenv fenv)))
 
+(defun compile-flet (form venv tenv aenv fenv)
+  (let ((bindings (flet-bindings form))
+        (body (flet-body form)))
+    (%compile-flet bindings body venv tenv aenv fenv fenv)))
+
+(defun %compile-flet (bindings body venv tenv aenv fenv fenv1)
+  (if bindings
+      (destructuring-bind ((name args form) . bindings1) bindings
+        (let ((ftype (query-appenv (car bindings) aenv)))
+          (multiple-value-bind (name1 args1 form1)
+              (compile-function name ftype args form venv tenv aenv fenv
+                                :entry-p nil :rec-p nil)
+            (let ((fenv2 (extend-funenv name name1 ftype args fenv1)))
+              (multiple-value-bind (body1 return-type)
+                  (%compile-flet bindings1 body venv tenv aenv fenv fenv2)
+                (values `(flet ((,name1 ,args1 ,@form1))
+                           ,body1)
+                        return-type))))))
+      (compile-form body venv tenv aenv fenv1)))
+
 (defun compile-set (form venv tenv aenv fenv)
   (let ((place (set-place form))
         (value (set-value form)))
@@ -184,7 +253,8 @@
                   `(multiple-value-bind ,arg1 ,operand1
                      ,(%compile-user-apply operator operands1 args0 args1
                                            venv1 tenv aenv fenv)))
-                 (t (error "Must not be reached."))))))))
-      (let ((vars (loop for arg0 in args0
+                 (t (error "Must not be reached.")))))))
+      (let ((operator1 (funenv-name1 operator fenv))
+            (vars (loop for arg0 in args0
                      append (query-varenv arg0 venv))))
-        `(,operator ,@vars)))
+        `(,operator1 ,@vars))))

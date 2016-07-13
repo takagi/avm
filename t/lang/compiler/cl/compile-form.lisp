@@ -27,6 +27,9 @@
          (foo.lang.compiler.cl.varenv::*genvar-counter* 0))
      ,@body))
 
+(setf (fdefinition 'compile-form)
+      #'foo.lang.compiler.cl.compile-form::compile-form)
+
 
 (subtest "LET"
 
@@ -71,7 +74,7 @@
           "Ok - Multiple bindings.")))
   )
 
-(subtest "Built-in apply"
+(subtest "Built-in function application"
 
   (with-env (tenv aenv fenv venv)
     (let ((aenv1 (extend-appenv '#1=(coerce 1) '(int double) aenv)))

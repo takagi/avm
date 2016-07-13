@@ -86,7 +86,7 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun defkernel-form (manager name args body)
     (multiple-value-bind (cl-name include-vector-type-p cl-form)
-        (kernel-manager-define-function manager :cl name args body)
+        (kernel-manager-define-function manager name args body)
       `(progn
          ;; Define CL kernel.
          ,cl-form

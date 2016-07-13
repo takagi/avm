@@ -31,6 +31,7 @@
                    (:file "built-in")
                    (:file "binarize")
                    (:file "convert-functions")
+                   (:file "free-variable")
                    (:file "unienv")
                    (:file "typenv")
                    (:file "appenv")

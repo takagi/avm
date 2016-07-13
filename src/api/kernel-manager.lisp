@@ -28,25 +28,21 @@
 
 (defvar *kernel-manager* (make-kernel-manager))
 
-(defgeneric kernel-manager-define-function (manager engine name args body))
-
-(defmethod kernel-manager-define-function (manager (engine (eql :cl))
-                                           name args body)
+(defun kernel-manager-define-function (manager name args body)
   ;; Check reserved arguments not used.
   (unless (not (member 'i args))
     (error "The argument I is reserved."))
   (unless (not (member 'n args))
     (error "The argument N is reserved."))
   ;; Compile and define kernel function.
-  (let ((kernel (kernel-manager-kernel manager))
-        (args1 (append '(i n) args)))
+  (let ((kernel (kernel-manager-kernel manager)))
     ;; Compile kernel function.
-    (multiple-value-bind (name1 type form)
-        (compile-kernel-function :cl name args1 body kernel)
+    (multiple-value-bind (cl-name type args1 cl-form)
+        (compile-kernel-function :cl name args body kernel)
       ;; Define kernel function to kernel.
-      (kernel-define-function kernel name1 type args1 body)
+      (kernel-define-function kernel name cl-name type args1 body)
       ;; Return compiled form.
-      (values name1 (include-vector-type-p type) form))))
+      (values cl-name (include-vector-type-p type) cl-form))))
 
 (defun include-vector-type-p (type)
   (some #'vector-type-p (function-arg-types type)))

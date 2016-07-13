@@ -33,6 +33,10 @@
            :let-p
            :let-bindings
            :let-body
+           ;; FLET
+           :flet-p
+           :flet-bindings
+           :flet-body
            ;; SET
            :set-p
            :set-place
@@ -174,6 +178,37 @@
   ;; TODO: implicit progn.
   (cl-pattern:match form
     (('let _ body) body)
+    (_ (error "The form ~S is malformed." form))))
+
+
+;;
+;; FLET
+
+(defun flet-p (object)
+  (cl-pattern:match object
+    (('flet . _) t)
+    (_ nil)))
+
+(defun flet-bindings (form)
+  (cl-pattern:match form
+    (('flet bindings _)
+     (unless (every #'fbinding-p bindings)
+       (error "The form ~S is malformed." form))
+     (unless (not #1=(find-duplicate (mapcar #'car bindings)))
+       (error "The function ~A occurs more than once in the FLET." #1#))
+     bindings)
+    (_ (error "The form ~S is malformed." form))))
+
+(defun fbinding-p (object)
+  (cl-pattern:match object
+    ((name args _) (and (foo-symbol-p name)
+                        (every #'foo-symbol-p args)))
+    (_ nil)))
+
+(defun flet-body (form)
+  ;; TODO: implicit progn.
+  (cl-pattern:match form
+    (('flet _ body) body)
     (_ (error "The form ~S is malformed." form))))
 
 

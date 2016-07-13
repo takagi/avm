@@ -14,12 +14,32 @@
         :foo.lang.typenv
         :foo.lang.appenv
         :foo.lang.funenv)
-  (:export :infer))
+  (:export :infer-function))
 (in-package :foo.lang.infer)
 
 
 ;;
 ;; Type inference
+
+(defun infer-function (name args body tenv aenv uenv fenv &key rec-p)
+  (let* ((arg-types (loop for arg in args
+                       collect (if (member arg '(i n))
+                                   'int (gentype))))
+         (return-type (gentype))
+         (ftype (make-function-type arg-types return-type)))
+    (let ((tenv1 (flet ((aux (tenv pair)
+                          (destructuring-bind (arg . type) pair
+                            (extend-typenv arg type tenv))))
+                   (reduce #'aux (mapcar #'cons args arg-types)
+                           :initial-value tenv)))
+          (fenv1 (if rec-p
+                     (extend-funenv name nil ftype args fenv)
+                     fenv)))
+      (multiple-value-bind (return-type1 aenv1 uenv1)
+          (infer body tenv1 aenv uenv fenv1)
+        (multiple-value-bind (_ uenv2) (unify return-type return-type1 uenv1)
+          (declare (ignore _))
+          (values ftype aenv1 uenv2))))))
 
 (defun infer (form tenv aenv uenv fenv)
   (cond
@@ -29,6 +49,7 @@
     ((the-p form) (infer-the form tenv aenv uenv fenv))
     ((if-p form) (infer-if form tenv aenv uenv fenv))
     ((let-p form) (infer-let form tenv aenv uenv fenv))
+    ((flet-p form) (infer-flet form tenv aenv uenv fenv))
     ((set-p form) (infer-set form tenv aenv uenv fenv))
     ((apply-p form) (infer-apply form tenv aenv uenv fenv))
     (t (error "The value ~S is an invalid form." form))))
@@ -89,6 +110,21 @@
       (destructuring-bind (tenv1 aenv1 uenv1)
           (reduce #'aux bindings :initial-value (list tenv aenv uenv))
         (infer body tenv1 aenv1 uenv1 fenv)))))
+
+(defun infer-flet (form tenv aenv uenv fenv)
+  (let ((bindings (flet-bindings form))
+        (body (flet-body form)))
+    (%infer-flet bindings body tenv aenv uenv fenv fenv)))
+
+(defun %infer-flet (bindings body tenv aenv uenv fenv fenv1)
+  (if bindings
+      (destructuring-bind ((name args form) . bindings1) bindings
+        (multiple-value-bind (ftype aenv1 uenv1)
+            (infer-function name args form tenv aenv uenv fenv :rec-p t)
+          (let ((fenv2 (extend-funenv name nil ftype args fenv1))
+                (aenv2 (extend-appenv (car bindings) ftype aenv1)))
+            (%infer-flet bindings1 body tenv aenv2 uenv1 fenv fenv2))))
+      (infer body tenv aenv uenv fenv1)))
 
 (defun infer-set (form tenv aenv uenv fenv)
   (let ((place (set-place form))
