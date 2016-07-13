@@ -156,32 +156,35 @@
         (values `(the ,return-type1 (,operator1 ,@operands1)) return-type)))))
 
 (defun compile-user-apply (form venv tenv aenv fenv)
-  (labels ((aux (operands args venv1 operator args0)
-             (if operands
-                 (destructuring-bind (operand . operands1) operands
-                   (destructuring-bind (arg . args1) args
-                     (multiple-value-bind (operand1 type)
-                         (compile-form operand venv tenv aenv fenv)
-                       (multiple-value-bind (venv2 arg1)
-                           (extend-varenv arg type venv1)
-                         (cond
-                           ((or (scalar-type-p type)
-                                (array-type-p type))
-                            `(let ((,@arg1 ,operand1))
-                               ,(aux operands1 args1 venv2 operator args0)))
-                           ((vector-type-p type)
-                            `(multiple-value-bind ,arg1 ,operand1
-                               ,(aux operands1 args1 venv2 operator args0)))
-                           (t (error "Must not be reached.")))))))
-                 (let ((vars (loop for arg in args0
-                                  append (query-varenv arg venv1))))
-                   `(,operator ,@vars)))))
-    (let ((operator (apply-operator form))
-          (operands (apply-operands form)))
-      (let ((argc (funenv-argc operator fenv)))
-        (unless (= argc (length operands))
-          (error "Invalid number of arguments: ~S" (length operands))))
-      (let* ((args (funenv-arguments operator fenv))
-             (form1 (aux operands args venv operator args))
-             (return-type (funenv-return-type operator fenv)))
+  (let ((operator (apply-operator form))
+        (operands (apply-operands form)))
+    (let ((argc (funenv-argc operator fenv)))
+      (unless (= argc (length operands))
+        (error "Invalid number of arguments: ~S" (length operands))))
+    (let ((args (funenv-arguments operator fenv))
+          (return-type (funenv-return-type operator fenv)))
+      (let ((form1 (%compile-user-apply operator operands args args
+                                        venv tenv aenv fenv)))
         (values form1 return-type)))))
+
+(defun %compile-user-apply (operator operands args0 args venv tenv aenv fenv)
+  (if operands
+      (destructuring-bind (operand . operands1) operands
+        (destructuring-bind (arg . args1) args
+          (multiple-value-bind (operand1 type)
+              (compile-form operand venv tenv aenv fenv)
+            (multiple-value-bind (venv1 arg1) (extend-varenv arg type venv)
+              (cond
+                ((or (scalar-type-p type)
+                     (array-type-p type))
+                 `(let ((,@arg1 ,operand1))
+                    ,(%compile-user-apply operator operands1 args0 args1
+                                          venv1 tenv aenv fenv)))
+                ((vector-type-p type)
+                  `(multiple-value-bind ,arg1 ,operand1
+                     ,(%compile-user-apply operator operands1 args0 args1
+                                           venv1 tenv aenv fenv)))
+                 (t (error "Must not be reached."))))))))
+      (let ((vars (loop for arg0 in args0
+                     append (query-varenv arg0 venv))))
+        `(,operator ,@vars)))
