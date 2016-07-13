@@ -79,6 +79,7 @@
     ((the-p form) (compile-the form venv tenv aenv fenv))
     ((if-p form) (compile-if form venv tenv aenv fenv))
     ((let-p form) (compile-let form venv tenv aenv fenv))
+    ((labels-p form) (compile-labels form venv tenv aenv fenv))
     ((flet-p form) (compile-flet form venv tenv aenv fenv))
     ((set-p form) (compile-set form venv tenv aenv fenv))
     ((apply-p form) (compile-apply form venv tenv aenv fenv))
@@ -179,22 +180,28 @@
 (defun compile-flet (form venv tenv aenv fenv)
   (let ((bindings (flet-bindings form))
         (body (flet-body form)))
-    (%compile-flet bindings body venv tenv aenv fenv fenv)))
+    (%compile-flet 'flet bindings body nil venv tenv aenv fenv fenv)))
 
-(defun %compile-flet (bindings body venv tenv aenv fenv fenv1)
+(defun %compile-flet (op bindings body rec-p venv tenv aenv fenv fenv1)
   (if bindings
       (destructuring-bind ((name args form) . bindings1) bindings
         (let ((ftype (query-appenv (car bindings) aenv)))
           (multiple-value-bind (name1 args1 form1)
               (compile-function name ftype args form venv tenv aenv fenv
-                                :entry-p nil :rec-p nil)
+                                :entry-p nil :rec-p rec-p)
             (let ((fenv2 (extend-funenv name name1 ftype args fenv1)))
               (multiple-value-bind (body1 return-type)
-                  (%compile-flet bindings1 body venv tenv aenv fenv fenv2)
-                (values `(flet ((,name1 ,args1 ,@form1))
+                  (%compile-flet op bindings1 body rec-p
+                                 venv tenv aenv fenv fenv2)
+                (values `(,op ((,name1 ,args1 ,@form1))
                            ,body1)
                         return-type))))))
       (compile-form body venv tenv aenv fenv1)))
+
+(defun compile-labels (form venv tenv aenv fenv)
+  (let ((bindings (labels-bindings form))
+        (body (labels-body form)))
+    (%compile-flet 'labels bindings body t venv tenv aenv fenv fenv)))
 
 (defun compile-set (form venv tenv aenv fenv)
   (let ((place (set-place form))

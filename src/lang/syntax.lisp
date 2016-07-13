@@ -37,6 +37,10 @@
            :flet-p
            :flet-bindings
            :flet-body
+           ;; LABELS
+           :labels-p
+           :labels-bindings
+           :labels-body
            ;; SET
            :set-p
            :set-place
@@ -209,6 +213,31 @@
   ;; TODO: implicit progn.
   (cl-pattern:match form
     (('flet _ body) body)
+    (_ (error "The form ~S is malformed." form))))
+
+
+;;
+;; LABELS
+
+(defun labels-p (object)
+  (cl-pattern:match object
+    (('labels . _) t)
+    (_ nil)))
+
+(defun labels-bindings (form)
+  (cl-pattern:match form
+    (('labels bindings _)
+     (unless (every #'fbinding-p bindings)
+       (error "The form ~S is malformed." form))
+     (unless (not #1=(find-duplicate (mapcar #'car bindings)))
+       (error "The function ~A occurs more than once in the LABELS." #1#))
+     bindings)
+    (_ (error "The form ~S is malformed." form))))
+
+(defun labels-body (form)
+  ;; TODO: implicit progn.
+  (cl-pattern:match form
+    (('labels _ body) body)
     (_ (error "The form ~S is malformed." form))))
 
 

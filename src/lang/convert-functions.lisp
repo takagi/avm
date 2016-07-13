@@ -25,6 +25,7 @@
     ((if-p form) (convert-if form))
     ((let-p form) (convert-let form))
     ((flet-p form) (convert-flet form))
+    ((labels-p form) (convert-labels form))
     ((set-p form) (convert-set form))
     ((apply-p form) (convert-apply form))
     (t (error "The value ~S is an invalid form." form))))
@@ -59,16 +60,24 @@
         `(let ,bindings1 ,body1)))))
 
 (defun convert-flet (form)
+  (let ((bindings (flet-bindings form))
+        (body (flet-body form)))
+    (%convert-flet 'flet bindings body)))
+
+(defun %convert-flet (op bindings body)
   (flet ((aux (binding)
            (destructuring-bind (name args body) binding
              (let ((args1 (append '(i n) args))
                    (body1 (convert-functions body)))
                `(,name ,args1 ,body1)))))
-    (let ((bindings (flet-bindings form))
-          (body (flet-body form)))
-      (let ((bindings1 (mapcar #'aux bindings))
-            (body1 (convert-functions body)))
-        `(flet ,bindings1 ,body1)))))
+    (let ((bindings1 (mapcar #'aux bindings))
+          (body1 (convert-functions body)))
+      `(,op ,bindings1 ,body1))))
+
+(defun convert-labels (form)
+  (let ((bindings (labels-bindings form))
+        (body (labels-body form)))
+    (%convert-flet 'labels bindings body)))
 
 (defun convert-set (form)
   (let ((place (set-place form))

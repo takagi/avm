@@ -50,6 +50,7 @@
     ((if-p form) (infer-if form tenv aenv uenv fenv))
     ((let-p form) (infer-let form tenv aenv uenv fenv))
     ((flet-p form) (infer-flet form tenv aenv uenv fenv))
+    ((labels-p form) (infer-labels form tenv aenv uenv fenv))
     ((set-p form) (infer-set form tenv aenv uenv fenv))
     ((apply-p form) (infer-apply form tenv aenv uenv fenv))
     (t (error "The value ~S is an invalid form." form))))
@@ -114,17 +115,22 @@
 (defun infer-flet (form tenv aenv uenv fenv)
   (let ((bindings (flet-bindings form))
         (body (flet-body form)))
-    (%infer-flet bindings body tenv aenv uenv fenv fenv)))
+    (%infer-flet bindings body nil tenv aenv uenv fenv fenv)))
 
-(defun %infer-flet (bindings body tenv aenv uenv fenv fenv1)
+(defun %infer-flet (bindings body rec-p tenv aenv uenv fenv fenv1)
   (if bindings
       (destructuring-bind ((name args form) . bindings1) bindings
         (multiple-value-bind (ftype aenv1 uenv1)
-            (infer-function name args form tenv aenv uenv fenv :rec-p t)
+            (infer-function name args form tenv aenv uenv fenv :rec-p rec-p)
           (let ((fenv2 (extend-funenv name nil ftype args fenv1))
                 (aenv2 (extend-appenv (car bindings) ftype aenv1)))
-            (%infer-flet bindings1 body tenv aenv2 uenv1 fenv fenv2))))
+            (%infer-flet bindings1 body rec-p tenv aenv2 uenv1 fenv fenv2))))
       (infer body tenv aenv uenv fenv1)))
+
+(defun infer-labels (form tenv aenv uenv fenv)
+  (let ((bindings (labels-bindings form))
+        (body (labels-body form)))
+    (%infer-flet bindings body t tenv aenv uenv fenv fenv)))
 
 (defun infer-set (form tenv aenv uenv fenv)
   (let ((place (set-place form))
