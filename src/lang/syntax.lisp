@@ -152,12 +152,11 @@
 (defun let-bindings (form)
   (cl-pattern:match form
     (('let bindings _)
-     (cond
-       ((notevery #'binding-p bindings)
-        (error "The form ~S is malformed." form))
-       (#1=(find-duplicate (mapcar #'car bindings))
-           (error "The variable ~A occurs more than once in the LET." #1#))
-       (t bindings)))
+     (unless (every #'binding-p bindings)
+       (error "The form ~S is malformed." form))
+     (unless (null #1=(find-duplicate (mapcar #'car bindings)))
+       (error "The variable ~A occurs more than once in the LET." #1#))
+     bindings)
     (_ (error "The form ~S is malformed." form))))
 
 (defun binding-p (object)
