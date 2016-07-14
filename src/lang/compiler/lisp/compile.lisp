@@ -4,7 +4,7 @@
 |#
 
 (in-package :cl-user)
-(defpackage avm.lang.compiler.cl.compile
+(defpackage avm.lang.compiler.lisp.compile
   (:use :cl
         :avm
         :avm.lang.data
@@ -14,11 +14,11 @@
         :avm.lang.typenv
         :avm.lang.appenv
         :avm.lang.funenv
-        :avm.lang.compiler.cl.compile-type
-        :avm.lang.compiler.cl.varenv)
+        :avm.lang.compiler.lisp.compile-type
+        :avm.lang.compiler.lisp.varenv)
   (:export :compile-function
            :*genname-counter*))
-(in-package :avm.lang.compiler.cl.compile)
+(in-package :avm.lang.compiler.lisp.compile)
 
 
 ;;

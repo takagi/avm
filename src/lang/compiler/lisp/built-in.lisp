@@ -4,13 +4,13 @@
 |#
 
 (in-package :cl-user)
-(defpackage avm.lang.compiler.cl.built-in
+(defpackage avm.lang.compiler.lisp.built-in
   (:use :cl
         :avm
         :avm.lang.data
         :avm.lang.built-in)
   (:export))
-(in-package :avm.lang.compiler.cl.built-in)
+(in-package :avm.lang.compiler.lisp.built-in)
 
 
 (defmethod built-in-functions ((engine (eql :cl)))

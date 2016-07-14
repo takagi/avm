@@ -4,16 +4,16 @@
 |#
 
 (in-package :cl-user)
-(defpackage avm-test.lang.compiler.cl.compile
+(defpackage avm-test.lang.compiler.lisp.compile
   (:use :cl
         :prove
         :avm
         :avm.lang.typenv
         :avm.lang.appenv
         :avm.lang.funenv
-        :avm.lang.compiler.cl.varenv
-        :avm.lang.compiler.cl.compile))
-(in-package :avm-test.lang.compiler.cl.compile)
+        :avm.lang.compiler.lisp.varenv
+        :avm.lang.compiler.lisp.compile))
+(in-package :avm-test.lang.compiler.lisp.compile)
 
 
 (plan nil)
@@ -28,7 +28,7 @@
      ,@body))
 
 (setf (fdefinition 'compile-form)
-      #'avm.lang.compiler.cl.compile::compile-form)
+      #'avm.lang.compiler.lisp.compile::compile-form)
 
 
 (subtest "LET"
@@ -79,7 +79,7 @@
   (with-env (tenv aenv fenv venv)
     (let ((aenv1 (extend-appenv '#1=(coerce 1) '(int double) aenv)))
       (is (compile-form '#1# venv tenv aenv1 fenv)
-          '(the double-float (avm.lang.compiler.cl.built-in::int->double 1))
+          '(the double-float (avm.lang.compiler.lisp.built-in::int->double 1))
           "Ok.")))
 
   (with-env (tenv aenv fenv venv)

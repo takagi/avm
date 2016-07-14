@@ -4,7 +4,7 @@
 |#
 
 (in-package :cl-user)
-(defpackage avm.lang.compiler.cl.lang
+(defpackage avm.lang.compiler.lisp.lang
   (:use :cl
         :avm
         :avm.lang
@@ -18,11 +18,11 @@
         :avm.lang.appenv
         :avm.lang.funenv
         :avm.lang.infer
-        :avm.lang.compiler.cl.compile-type
-        :avm.lang.compiler.cl.varenv
-        :avm.lang.compiler.cl.compile
+        :avm.lang.compiler.lisp.compile-type
+        :avm.lang.compiler.lisp.varenv
+        :avm.lang.compiler.lisp.compile
         ))
-(in-package :avm.lang.compiler.cl.lang)
+(in-package :avm.lang.compiler.lisp.lang)
 
 
 (defun kernel->vars (kernel)

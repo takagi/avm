@@ -4,7 +4,7 @@
 |#
 
 (in-package :cl-user)
-(defpackage avm.lang.compiler.cl.varenv
+(defpackage avm.lang.compiler.lisp.varenv
   (:use :cl
         :avm.lang.symbol
         :avm.lang.type)
@@ -14,7 +14,7 @@
            :query-varenv
            :*genvar-counter*
            ))
-(in-package :avm.lang.compiler.cl.varenv)
+(in-package :avm.lang.compiler.lisp.varenv)
 
 
 ;;

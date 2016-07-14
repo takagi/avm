@@ -4,11 +4,11 @@
 |#
 
 (in-package :cl-user)
-(defpackage avm.lang.compiler.cl.compile-type
+(defpackage avm.lang.compiler.lisp.compile-type
   (:use :cl
         :avm)
   (:export :compile-type))
-(in-package :avm.lang.compiler.cl.compile-type)
+(in-package :avm.lang.compiler.lisp.compile-type)
 
 
 (defun compile-type (type)

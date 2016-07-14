@@ -22,7 +22,7 @@
                   ((:module "compiler"
                     :serial t
                     :components
-                    ((:module "cl"
+                    ((:module "lisp"
                       :serial t
                       :components
                       ((:test-file "compile")
