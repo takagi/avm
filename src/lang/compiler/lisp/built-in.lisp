@@ -13,7 +13,7 @@
 (in-package :avm.lang.compiler.lisp.built-in)
 
 
-(defmethod built-in-functions ((engine (eql :cl)))
+(defmethod built-in-functions ((engine (eql :lisp)))
   '((+ (a a a)
      (((int int int) +)
       (((:vector int 2) (:vector int 2) (:vector int 2)) int2-add*)

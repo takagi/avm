@@ -69,7 +69,7 @@
   (if entry-p
       (let ((symbol-name (symbol-name name))
             (symbol-package (symbol-package name)))
-        (intern (format nil "%CL-~A" symbol-name) symbol-package))
+        (intern (format nil "%LISP-~A" symbol-name) symbol-package))
       (genname name)))
 
 (defun compile-form (form venv tenv aenv fenv)

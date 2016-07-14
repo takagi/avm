@@ -20,7 +20,7 @@
            :kernel-define-function
            :kernel-function-exists-p
            :kernel-function-name
-           :kernel-function-cl-name
+           :kernel-function-lisp-name
            :kernel-function-type
            :kernel-function-arguments
            :kernel-function-body
@@ -37,21 +37,21 @@
 
 (defstruct (function (:constructor %make-function))
   (name :name :read-only t)
-  (cl-name :cl-name :read-only t)
+  (lisp-name :lisp-name :read-only t)
   (type :type :read-only t)
   (arguments :arguments :read-only t)
   (body :body :read-only t))
 
-(defun make-function (name cl-name type arguments body)
+(defun make-function (name lisp-name type arguments body)
   (check-type name avm-symbol)
-  (check-type cl-name symbol)
+  (check-type lisp-name symbol)
   (check-type type function-type)
   (loop for argument in arguments
      do (check-type argument avm-symbol))
   (unless (= (1- (length type)) (length arguments))
     (error "Invalid number of arguments against type: ~S" (length arguments)))
   (%make-function :name name
-                  :cl-name cl-name
+                  :lisp-name lisp-name
                   :type type
                   :arguments arguments
                   :body body))
@@ -136,9 +136,9 @@
 ;;
 ;; Kernel - Functions
 
-(defun kernel-define-function (kernel name cl-name type args body)
+(defun kernel-define-function (kernel name lisp-name type args body)
   (symbol-macrolet ((namespace (kernel-function-namespace kernel)))
-    (let ((function (make-function name cl-name type args body)))
+    (let ((function (make-function name lisp-name type args body)))
       (setf (getf namespace name) function)))
   name)
 
@@ -155,8 +155,8 @@
 (defun kernel-function-name (kernel name)
   (function-name (%lookup-function kernel name)))
 
-(defun kernel-function-cl-name (kernel name)
-  (function-cl-name (%lookup-function kernel name)))
+(defun kernel-function-lisp-name (kernel name)
+  (function-lisp-name (%lookup-function kernel name)))
 
 (defun kernel-function-type (kernel name)
   (function-type (%lookup-function kernel name)))

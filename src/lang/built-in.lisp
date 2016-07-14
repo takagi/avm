@@ -37,19 +37,19 @@
   (eq name '.*))
 
 (defun built-in-exists-p (name)
-  (and (assoc name (built-in-functions :cl))
+  (and (assoc name (built-in-functions :lisp))
        t))
 
 (defun built-in-type-scheme (name)
   (cons :type-scheme
-   (or (cadr (assoc name (built-in-functions :cl)))
+   (or (cadr (assoc name (built-in-functions :lisp)))
        (error "The function ~S is not defined." name))))
 
 (defun built-in-argc (name)
   (- (length (built-in-type-scheme name)) 2))
 
 (defun built-in-candidates (name)
-  (or (caddr (assoc name (built-in-functions :cl)))
+  (or (caddr (assoc name (built-in-functions :lisp)))
       (error "The function ~S is not defined." name)))
 
 (defun built-in-elected (name function-type)

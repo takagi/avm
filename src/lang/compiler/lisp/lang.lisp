@@ -51,7 +51,7 @@
 
 (defun %extend-functions (kernel funenv)
   (flet ((aux (funenv1 name)
-           (let ((name1 (kernel-function-cl-name kernel name))
+           (let ((name1 (kernel-function-lisp-name kernel name))
                  (type (kernel-function-type kernel name))
                  (args (kernel-function-arguments kernel name)))
              (extend-funenv name name1 type args funenv1))))
@@ -66,7 +66,7 @@
   (loop for type in ftype
      collect (query-unienv type uenv)))
 
-(defmethod compile-kernel-function ((engine (eql :cl)) name args body kernel)
+(defmethod compile-kernel-function ((engine (eql :lisp)) name args body kernel)
   (let ((args1 (append '(i n) args))
         (body1 (convert-functions
                 (binarize body))))
@@ -90,8 +90,8 @@
                                 :entry-p t :rec-p t)
             (values name1 ftype1 args1 `(defun ,name1 ,args2 ,@body2))))))))
 
-(defmethod compile-kernel-global (kernel name (engine (eql :cl)))
+(defmethod compile-kernel-global (kernel name (engine (eql :lisp)))
   nil)
 
-(defmethod compile-kernel-constant (kernel name (engine (eql :cl)))
+(defmethod compile-kernel-constant (kernel name (engine (eql :lisp)))
   nil)

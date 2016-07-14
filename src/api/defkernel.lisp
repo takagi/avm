@@ -42,7 +42,7 @@
 (defvar *use-thread-p* nil)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defun defkernel-entry-form (name cl-name args)
+  (defun defkernel-entry-form (name lisp-name args)
     (let ((args1 (map-into (make-list (length args)) #'gensym))
           (arg (gensym)))
       `(defun ,name (,@args &key size)
@@ -66,7 +66,7 @@
                       (push (bt:make-thread
                              #'(lambda ()
                                  (loop for i from begin below end
-                                    do (,cl-name i n ,@args1))))
+                                    do (,lisp-name i n ,@args1))))
                             threads)))
                   (loop for thread in threads
                      do (bt:join-thread thread)))))
@@ -80,21 +80,21 @@
               (let ,(array-lisp-bindings args1 args)
                 (dotimes (i n)
                   (declare (type fixnum i))
-                  (,cl-name i n ,@args1))))))))))
+                  (,lisp-name i n ,@args1))))))))))
 
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun defkernel-form (manager name args body)
-    (multiple-value-bind (cl-name include-vector-type-p cl-form)
+    (multiple-value-bind (lisp-name include-vector-type-p lisp-form)
         (kernel-manager-define-function manager name args body)
       `(progn
-         ;; Define CL kernel.
-         ,cl-form
+         ;; Define Lisp kernel.
+         ,lisp-form
          ;; Define CUDA kernel.
          nil
          ;; Define entry point.
          ,(when (not include-vector-type-p)
-            (defkernel-entry-form name cl-name args))))))
+            (defkernel-entry-form name lisp-name args))))))
 
 (defmacro defkernel (name args body)
   (defkernel-form *kernel-manager* name args body))

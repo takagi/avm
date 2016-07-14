@@ -37,12 +37,12 @@
   ;; Compile and define kernel function.
   (let ((kernel (kernel-manager-kernel manager)))
     ;; Compile kernel function.
-    (multiple-value-bind (cl-name type args1 cl-form)
-        (compile-kernel-function :cl name args body kernel)
+    (multiple-value-bind (lisp-name type args1 lisp-form)
+        (compile-kernel-function :lisp name args body kernel)
       ;; Define kernel function to kernel.
-      (kernel-define-function kernel name cl-name type args1 body)
+      (kernel-define-function kernel name lisp-name type args1 body)
       ;; Return compiled form.
-      (values cl-name (include-vector-type-p type) cl-form))))
+      (values lisp-name (include-vector-type-p type) lisp-form))))
 
 (defun include-vector-type-p (type)
   (some #'vector-type-p (function-arg-types type)))
