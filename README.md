@@ -1,6 +1,6 @@
 # AVM - Arrayed Vector Math library
 
-Efficient and expressive arrayed vector math library in Common Lisp, which has multi-threadding and CUDA support.
+Efficient and expressive arrayed vector math library with multi-threading and CUDA support in Common Lisp.
 
 ```common-lisp
 (defkernel mandelbrot (xs)
