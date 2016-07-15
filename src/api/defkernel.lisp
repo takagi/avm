@@ -48,7 +48,8 @@
        (let ((n (or size (compute-dimension (list ,@args)))))
          (declare (type fixnum n))
          (cond
-           (*use-cuda-p* nil)
+           (*use-cuda-p*
+            (error "CUDA support is comming shortly."))
            (*use-thread-p*
             ;; Synchronize arrays appearing in arguments.
             (loop for ,arg in (list ,@args)
