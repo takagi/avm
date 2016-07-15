@@ -41,60 +41,55 @@
 
 (defvar *use-thread-p* nil)
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defun defkernel-entry-form (name lisp-name args)
-    (let ((args1 (map-into (make-list (length args)) #'gensym))
-          (arg (gensym)))
-      `(defun ,name (,@args &key size)
-         (let ((n (or size
-                      (compute-dimension (list ,@args)))))
-           (declare (type fixnum n))
-           (cond
-             (*use-cuda-p* nil)
-             (*use-thread-p*
-              ;; Synchronize arrays appearing in arguments.
-              (loop for ,arg in (list ,@args)
-                 when (array-p ,arg)
-                 do (array-ensure-lisp-up-to-date ,arg)
-                    (set-array-dirty ,arg :lisp))
-              ;; Launch kernel.
-              (let (,@(array-lisp-bindings args1 args)
-                    (ranges (compute-ranges 2 n)))
-                (let (threads)
-                  (dolist (range ranges)
-                    (destructuring-bind (begin end) range
-                      (push (bt:make-thread
-                             #'(lambda ()
-                                 (loop for i from begin below end
-                                    do (,lisp-name i n ,@args1))))
-                            threads)))
-                  (loop for thread in threads
-                     do (bt:join-thread thread)))))
-             (t
-              ;; Synchronize arrays appearing in arguments.
-              (loop for ,arg in (list ,@args)
-                 when (array-p ,arg)
-                 do (array-ensure-lisp-up-to-date ,arg)
-                    (set-array-dirty ,arg :lisp))
-              ;; Launch kernel.
-              (let ,(array-lisp-bindings args1 args)
-                (dotimes (i n)
-                  (declare (type fixnum i))
-                  (,lisp-name i n ,@args1))))))))))
+(defun define-kernel-function-entry-form (name lisp-name args)
+  (let ((args1 (map-into (make-list (length args)) #'gensym))
+        (arg (gensym)))
+    `(defun ,name (,@args &key size)
+       (let ((n (or size (compute-dimension (list ,@args)))))
+         (declare (type fixnum n))
+         (cond
+           (*use-cuda-p* nil)
+           (*use-thread-p*
+            ;; Synchronize arrays appearing in arguments.
+            (loop for ,arg in (list ,@args)
+               when (array-p ,arg)
+               do (array-ensure-lisp-up-to-date ,arg)
+                  (set-array-dirty ,arg :lisp))
+            ;; Launch kernel.
+            (let (,@(array-lisp-bindings args1 args)
+                  (ranges (compute-ranges 2 n)))
+              (let (threads)
+                (dolist (range ranges)
+                  (destructuring-bind (begin end) range
+                    (push (bt:make-thread
+                           #'(lambda ()
+                               (loop for i from begin below end
+                                  do (,lisp-name i n ,@args1))))
+                          threads)))
+                (loop for thread in threads
+                   do (bt:join-thread thread)))))
+           (t
+            ;; Synchronize arrays appearing in arguments.
+            (loop for ,arg in (list ,@args)
+               when (array-p ,arg)
+               do (array-ensure-lisp-up-to-date ,arg)
+                  (set-array-dirty ,arg :lisp))
+            ;; Launch kernel.
+            (let ,(array-lisp-bindings args1 args)
+              (dotimes (i n)
+                (declare (type fixnum i))
+                (,lisp-name i n ,@args1)))))))))
 
-
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defun defkernel-form (manager name args body)
-    (multiple-value-bind (lisp-name include-vector-type-p lisp-form)
-        (kernel-manager-define-function manager name args body)
-      `(progn
-         ;; Define Lisp kernel.
-         ,lisp-form
-         ;; Define CUDA kernel.
-         nil
-         ;; Define entry point.
-         ,(when (not include-vector-type-p)
-            (defkernel-entry-form name lisp-name args))))))
+(defun define-kernel-function (manager name args body)
+  (multiple-value-bind (lisp-name include-vector-type-p lisp-form)
+      (kernel-manager-define-function manager name args body)
+    ;; Define Lisp kernel.
+    (eval lisp-form)
+    ;; Define CUDA kernel.
+    ;(eval cuda-form)
+    ;; Define entry point.
+    (when (not include-vector-type-p)
+      (eval (define-kernel-function-entry-form name lisp-name args)))))
 
 (defmacro defkernel (name args body)
-  (defkernel-form *kernel-manager* name args body))
+  `(define-kernel-function *kernel-manager* ',name ',args ',body))
