@@ -48,13 +48,13 @@
 (defun built-in-argc (name)
   (- (length (built-in-type-scheme name)) 2))
 
-(defun built-in-candidates (name)
-  (or (caddr (assoc name (built-in-functions :lisp)))
+(defun built-in-candidates (engine name)
+  (or (caddr (assoc name (built-in-functions engine)))
       (error "The function ~S is not defined." name)))
 
-(defun built-in-elected (name function-type)
-  (or (assoc function-type (built-in-candidates name) :test #'equal)
+(defun built-in-elected (engine name function-type)
+  (or (assoc function-type (built-in-candidates engine name) :test #'equal)
       (error "The function ~S is not defined." name)))
 
-(defun built-in-operator (name function-type)
-  (cadr (built-in-elected name function-type)))
+(defun built-in-operator (engine name function-type)
+  (cadr (built-in-elected engine name function-type)))

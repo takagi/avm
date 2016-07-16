@@ -226,7 +226,7 @@
         (error "Invalid number of arguments: ~S" (length operands))))
     (let* ((type (query-appenv form aenv))
            (return-type (function-return-type type)))
-      (let ((operator1 (built-in-operator operator type))
+      (let ((operator1 (built-in-operator :lisp operator type))
             (operands1 (loop for operand in operands
                           collect (compile-form operand venv tenv aenv fenv)))
             (return-type1 (compile-type return-type)))
