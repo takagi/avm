@@ -18,7 +18,6 @@
         :avm.lang.appenv
         :avm.lang.funenv
         :avm.lang.infer
-        :avm.lang.compiler.lisp.compile-type
         :avm.lang.compiler.lisp.varenv
         :avm.lang.compiler.lisp.compile
         ))
