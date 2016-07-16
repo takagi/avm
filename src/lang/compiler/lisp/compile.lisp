@@ -40,7 +40,7 @@
   (let* ((name1 (compile-name name entry-p))
          (pairs (loop for arg in args
                       for type in (function-arg-types ftype)
-                     collect (cons arg type)))
+                   collect (cons arg type)))
          (venv1 (flet ((aux (venv pair)
                          (destructuring-bind (arg . type) pair
                            (extend-varenv arg type venv))))
@@ -80,8 +80,8 @@
     ((the-p form) (compile-the form venv tenv aenv fenv))
     ((if-p form) (compile-if form venv tenv aenv fenv))
     ((let-p form) (compile-let form venv tenv aenv fenv))
-    ((labels-p form) (compile-labels form venv tenv aenv fenv))
     ((flet-p form) (compile-flet form venv tenv aenv fenv))
+    ((labels-p form) (compile-labels form venv tenv aenv fenv))
     ((set-p form) (compile-set form venv tenv aenv fenv))
     ((apply-p form) (compile-apply form venv tenv aenv fenv))
     (t (error "The value ~S is an invalid form." form))))
