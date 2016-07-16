@@ -14,13 +14,12 @@
            :free-array
            :with-array
            :with-arrays
-           :array-lisp
-           :array-host
-           :array-device
            :array-aref
            :array-size
-           :set-array-dirty
+           :set-array-lisp-dirty
+           :set-array-cuda-dirty
            :array-ensure-lisp-up-to-date
+           :array-ensure-cuda-up-to-date
            ))
 (in-package :avm.api.array)
 
@@ -142,19 +141,7 @@
 
 
 ;;
-;; Array
-
-(defstruct (avm-array (:constructor %make-array)
-                      (:conc-name array-)
-                      (:predicate array-p))
-  (base-type :base-type :read-only t)
-  (lisp :lisp :read-only t)
-  (lisp-up-to-date :lisp-up-to-date)
-  (host :host :read-only t)
-  (host-up-to-date :host-up-to-date)
-  (device :device :read-only t)
-  (device-up-to-date :device-up-to-date))
-
+;; Type conversion
 
 (defparameter *lisp-cuda-types*
   '((int cl-cuda:int)
@@ -175,23 +162,46 @@
 
 (defun cuda->lisp-type (cuda-type)
   (first (find cuda-type *lisp-cuda-types* :key #'second)))
-                  
+
+
+;;
+;; Array
+
+(defstruct (avm-array (:constructor %make-array)
+                      (:conc-name array-)
+                      (:predicate array-p))
+  (base-type :base-type :read-only t)
+  (tuple-array :tuple-array :read-only t)
+  (host-ptr :host-ptr)
+  (device-ptr :device-ptr)
+  (lisp-up-to-date :lisp-up-to-date)
+  (cuda-up-to-date :cuda-up-to-date))
+
 (defun alloc-array (type dimensions)
-  (let ((cuda-type (lisp->cuda-type type)))
-    (let ((lisp (make-tuple-array type dimensions))
-          (host (and *use-cuda-p*
-                     (cl-cuda:alloc-host-memory cuda-type dimensions)))
-          (device (and *use-cuda-p*
-                       (cl-cuda:alloc-device-memory cuda-type dimensions))))
+  (let ((tuple-array (make-tuple-array type dimensions)))
+    (let* ((cuda-type (lisp->cuda-type type))
+           (host-ptr (and *use-cuda-p*
+                      (cl-cuda:alloc-host-memory cuda-type dimensions)))
+           (device-ptr (and *use-cuda-p*
+                        (cl-cuda:alloc-device-memory cuda-type dimensions))))
       (%make-array :base-type type
-                   :lisp lisp :lisp-up-to-date t
-                   :host host :host-up-to-date t
-                   :device device :device-up-to-date t))))
+                   :tuple-array tuple-array
+                   :host-ptr host-ptr
+                   :device-ptr device-ptr
+                   :lisp-up-to-date t
+                   :cuda-up-to-date t))))
 
 (defun free-array (array)
-  (when *use-cuda-p*
-    (cl-cuda:free-device-memory (array-device array))
-    (cl-cuda:free-host-memory (array-host array))))
+  ;; Free device memory.
+  (when (and *use-cuda-p*
+             (array-device-ptr array))
+    (cl-cuda:free-device-memory (array-device-ptr array))
+    (setf (array-device-ptr array) nil))
+  ;; Free host memory.
+  (when (and *use-cuda-p*
+             (array-host-ptr array))
+    (cl-cuda:free-host-memory (array-host-ptr array))
+    (setf (array-host-ptr array) nil)))
 
 (defmacro with-array ((var type dimensions) &body body)
   `(let ((,var (alloc-array ',type ,dimensions)))
@@ -206,10 +216,12 @@
       `(progn ,@body)))
 
 (defun array-aref (array index)
+  ;; Ensure array up-to-date for lisp.
   (array-ensure-lisp-up-to-date array)
-  (let ((lisp (array-lisp array))
+  ;; Return element of tuple array.
+  (let ((tuple-array (array-tuple-array array))
         (base-type (array-base-type array)))
-    (tuple-aref lisp base-type index)))
+    (tuple-aref tuple-array base-type index)))
 
 (define-setf-expander array-aref (array index &environment env)
   (multiple-value-bind (dummies vals newval setter getter)
@@ -225,34 +237,64 @@
        `(,@vals ,index)
        `(,v1 ,v2 ,v3 ,v4)
        `(progn
+          ;; Ensure array up to date for lisp.
           (array-ensure-lisp-up-to-date ,getter)
-          (let ((lisp (array-lisp ,getter))
+          ;; Set element of tuple array.
+          (let ((tuple-array (array-tuple-array ,getter))
                 (base-type (array-base-type ,getter)))
-            (setf (tuple-aref lisp base-type ,temp-index)
+            (setf (tuple-aref tuple-array base-type ,temp-index)
                   (values ,v1 ,v2 ,v3 ,v4)))
-          (set-array-dirty ,getter :lisp))
-       `(tuple-aref ,getter (array-base-type ,getter) ,temp-index)))))
+          ;; Set dirty flag for lisp to array.
+          (set-array-lisp-dirty ,getter :lisp))
+       ;; Return element of tuple array.
+       `(let ((tuple-array (array-tuple-array ,getter))
+              (base-type (array-base-type ,getter)))
+          (tuple-aref tuple-array base-type ,temp-index))))))
 
 (defun array-size (array)
-  (tuple-array-dimensions
-   (array-lisp array)
-   (array-base-type array)))
+  (let ((tuple-array (array-tuple-array array))
+        (base-type (array-base-type array)))
+    (tuple-array-dimensions tuple-array base-type)))
 
-(defmethod sync-array (array (from (eql :host)) (to (eql :lisp)))
-  (setf (array-lisp-up-to-date array) t)
-  nil)
+(defgeneric sync-array (array from to))
 
-(defun set-array-dirty (array avm)
-  (setf (array-lisp-up-to-date array) (eq avm :lisp))
-  (setf (array-host-up-to-date array) (eq avm :host))
-  (setf (array-device-up-to-date array) (eq avm :device)))
+(defmethod sync-array (array (from (eql :lisp)) (to (eql :cuda)))
+  (error "Not implemented."))
+
+(defmethod sync-array (array (from (eql :cuda)) (to (eql :lisp)))
+  ;; Synchronize device to host.
+  (let ((host-ptr (array-host-ptr array))
+        (device-ptr (array-device-ptr array))
+        (cuda-type (lisp->cuda-type (array-base-type array)))
+        (size (array-size array)))
+    (cl-cuda::memcpy-device-to-host host-ptr device-ptr cuda-type size))
+  ;; Synchronize host memory to tuple array.
+  (let* ((tuple-array (array-tuple-array array))
+         (host-ptr (array-host-ptr array))
+         (base-type (array-base-type array))
+         (cuda-type (lisp->cuda-type base-type))
+         (size (array-size array)))
+    (dotimes (i size)
+      ;; TODO: Not work with vector types.
+      (setf (tuple-aref tuple-array base-type i)
+            (cl-cuda:host-memory-aref host-ptr cuda-type i)))))
+
+(defun set-array-lisp-dirty (array)
+  (unless (array-lisp-up-to-date array)
+    (error "Ensure array up-to-date for lisp first."))
+  (setf (array-cuda-up-to-date array) nil))
+
+(defun set-array-cuda-dirty (array)
+  (unless (array-cuda-up-to-date array)
+    (error "Ensure array up-to-date for CUDA first."))
+  (setf (array-lisp-up-to-date array) nil))
 
 (defun array-ensure-lisp-up-to-date (array)
   (when (not (array-lisp-up-to-date array))
-    (cond
-      ((array-host-up-to-date array)
-       (sync-array array :host :lisp))
-      ((array-device-up-to-date array)
-       (sync-array array :device :host)
-       (sync-array array :host :lisp))
-      (t (error "Must not be reached.")))))
+    (assert (array-cuda-up-to-date array))
+    (sync-array array :cuda :lisp)))
+
+(defun array-ensure-cuda-up-to-date (array)
+  (when (not (array-cuda-up-to-date array))
+    (assert (array-lisp-up-to-date array))
+    (sync-array array :lisp :cuda)))

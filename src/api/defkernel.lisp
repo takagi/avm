@@ -36,7 +36,7 @@
     (loop for arg1 in args1
        for arg in args
        collect `(,arg1 (if (array-p ,arg)
-                           (array-lisp ,arg)
+                           (avm.api.array::array-tuple-array ,arg)
                            ,arg)))))
 
 (defvar *use-thread-p* nil)
@@ -55,7 +55,7 @@
             (loop for ,arg in (list ,@args)
                when (array-p ,arg)
                do (array-ensure-lisp-up-to-date ,arg)
-                  (set-array-dirty ,arg :lisp))
+                  (set-array-lisp-dirty ,arg))
             ;; Launch kernel.
             (let (,@(array-lisp-bindings args1 args)
                   (ranges (compute-ranges 2 n)))
@@ -74,7 +74,7 @@
             (loop for ,arg in (list ,@args)
                when (array-p ,arg)
                do (array-ensure-lisp-up-to-date ,arg)
-                  (set-array-dirty ,arg :lisp))
+                  (set-array-lisp-dirty ,arg))
             ;; Launch kernel.
             (let ,(array-lisp-bindings args1 args)
               (dotimes (i n)
