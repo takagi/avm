@@ -105,8 +105,9 @@
              (destructuring-bind (var value) binding
                (multiple-value-bind (type aenv2 uenv2)
                    (infer-form value tenv aenv1 uenv1 fenv)
-                 (let ((tenv2 (extend-typenv var type tenv1)))
-                   (list tenv2 aenv2 uenv2)))))))
+                 (let ((tenv2 (extend-typenv var type tenv1))
+                       (aenv3 (extend-appenv binding type aenv2)))
+                   (list tenv2 aenv3 uenv2)))))))
     (let ((bindings (let-bindings form))
           (body (let-body form)))
       (destructuring-bind (tenv1 aenv1 uenv1)

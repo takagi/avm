@@ -23,7 +23,7 @@
   nil)
 
 (defun extend-appenv (form type aenv)
-  (check-type type function-type)
+  (check-type type (or avm-type function-type))
   (acons form type aenv))
 
 (defun query-appenv (form aenv)
@@ -31,9 +31,11 @@
       (error "The function application ~S not found." form)))
 
 (defun subst-appenv (uenv aenv)
-  (loop for (form . ftype) in aenv
+  (loop for (form . type) in aenv
      collect
-       (let ((ftype1 (loop for type in ftype
-                        collect
-                          (query-unienv type uenv))))
-         (cons form ftype1))))
+       (if (avm-type-p type)
+           (let ((type1 (query-unienv type uenv)))
+             (cons form type1))
+           (let ((ftype1 (loop for type1 in type
+                            collect (query-unienv type1 uenv))))
+             (cons form ftype1)))))
