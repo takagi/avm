@@ -160,9 +160,9 @@
         (unless (= argc (length operands))
           (error "Invalid number of arguments: ~S" (length operands))))
       (let* ((type (if (built-in-exists-p operator)
-                      (type-scheme-to-type
-                       (built-in-type-scheme operator))
-                      (funenv-type operator fenv)))
+                       (type-scheme-to-type
+                        (built-in-type-scheme operator))
+                       (funenv-type operator fenv)))
              (aenv1 (extend-appenv form type aenv)))
         (let ((argtypes (function-arg-types type))
               (return-type (function-return-type type)))
