@@ -108,7 +108,8 @@
   '(satisfies function-type-p))
 
 (defun function-type-p (type)
-  (every #'avm-type-p type))
+  (and (listp type)
+       (every #'avm-type-p type)))
 
 (defun make-function-type (arg-types return-type)
   (dolist (arg-type arg-types)
