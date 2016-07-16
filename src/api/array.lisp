@@ -8,8 +8,6 @@
   (:use :cl
         :avm
         :avm.lang.data)
-  (:import-from :alexandria
-                :once-only)
   (:export :avm-array
            :array-p
            :alloc-array
