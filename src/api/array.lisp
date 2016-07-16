@@ -144,7 +144,7 @@
 ;;
 ;; Array
 
-(defstruct (avm-array (:constructor %make-farray)
+(defstruct (avm-array (:constructor %make-array)
                       (:conc-name array-)
                       (:predicate array-p))
   (base-type :base-type :read-only t)
@@ -183,10 +183,10 @@
                      (cl-cuda:alloc-host-memory cuda-type dimensions)))
           (device (and *use-cuda-p*
                        (cl-cuda:alloc-device-memory cuda-type dimensions))))
-      (%make-farray :base-type type
-                    :lisp lisp :lisp-up-to-date t
-                    :host host :host-up-to-date t
-                    :device device :device-up-to-date t))))
+      (%make-array :base-type type
+                   :lisp lisp :lisp-up-to-date t
+                   :host host :host-up-to-date t
+                   :device device :device-up-to-date t))))
 
 (defun free-array (array)
   (when *use-cuda-p*
