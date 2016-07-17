@@ -8,8 +8,19 @@
   (:use :cl
         :avm
         :avm.lang.syntax)
-  (:export :k-normal))
+  (:export :k-normal
+           :*gentmp-counter*))
 (in-package :avm.lang.compiler.cuda.k-normal)
+
+
+;;
+;; Gentmp
+
+(defvar *gentmp-counter* 0)
+
+(defun gentmp ()
+  (prog1 (intern (format nil "T~A" *gentmp-counter*))
+    (incf *gentmp-counter*)))
 
 
 ;;
@@ -43,7 +54,7 @@
         (value (the-value form)))
     (if (or (literal-p value) (reference-p value))
         `(the ,type ,value)
-        (let ((tmp (gentemp))
+        (let ((tmp (gentmp))
               (value1 (k-normal value)))
           `(let ((,tmp ,value1))
              (the ,type ,tmp))))))
@@ -52,7 +63,7 @@
   (let ((test-form (if-test-form form))
         (then-form (if-then-form form))
         (else-form (if-else-form form)))
-    (let ((tmp (gentemp))
+    (let ((tmp (gentmp))
           (test-form1 (k-normal test-form))
           (then-form1 (k-normal then-form))
           (else-form1 (k-normal else-form)))
@@ -96,7 +107,7 @@
         (value (set-value form)))
     (if (or (literal-p value) (reference-p value))
         `(set ,place ,value)
-        (let ((tmp (gentemp))
+        (let ((tmp (gentmp))
               (value1 (k-normal value)))
           `(let ((,tmp ,value1))
              (set ,place ,tmp))))))
@@ -111,7 +122,7 @@
       (destructuring-bind (operand . operands1) operands
         (if (or (literal-p operand) (reference-p operand))
             (%k-normal-apply operator operands1 (cons operand tmps))
-            (let ((tmp (gentemp))
+            (let ((tmp (gentmp))
                   (operand1 (k-normal operand)))
               `(let ((,tmp ,operand1))
                  ,(%k-normal-apply operator operands1 (cons tmp tmps))))))
