@@ -12,6 +12,7 @@
 
 int main(int agc, char** argv)
 {
+    int i, m;
     int* xs;
     struct timeval start_time, end_time;
 
@@ -23,12 +24,12 @@ int main(int agc, char** argv)
     gettimeofday(&start_time, NULL);
 
     // Compute Mandelbrot set.
-    for (int i = 0; i < 2048*2048; ++i) {
+    for (i = 0; i < 2048*2048; ++i) {
         double x = 0.0, y = 0.0;
         double a = (double)(i % 2048 - 512) / 1024.0;
         double b = (double)(i / 2048 - 1024) / 1024.0;
         xs[i] = 0;
-        for (int m = 1; m < 100; ++m) {
+        for (m = 1; m < 100; ++m) {
             double x1 = x*x - y*y - a;
             double y1 = 2*x*y - b;
             if (x1*x1 + y1*y1 > 4.0) {
@@ -50,7 +51,7 @@ int main(int agc, char** argv)
     printf("P2\n");
     printf("2048 2048\n");
     printf("255\n");
-    for (int i = 0; i < 2048*2048; ++i) {
+    for (i = 0; i < 2048*2048; ++i) {
         printf("%d\n", MIN(255, xs[i]*8));
     }
 
