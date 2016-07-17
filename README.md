@@ -42,6 +42,168 @@ To be described.
 
 To be described.
 
+## API
+
+### [Macro] defkernel
+
+    DEFKERNEL
+
+To be described.
+
+### [Macro] defkernel-macro
+
+    DEFKERNEL-MACRO
+    
+To be described.
+
+### [Macro] defkernel-global
+
+    DEFKERNEL-GROBAL
+
+To be described.
+
+### [Macro] defkernel-constant
+
+    DEFKERNEL-CONSTANT
+
+To be described.
+
+### [Macro] defkernel-symbol-macro
+
+    DEFKERNEL-SYMBOL-MACRO
+
+To be described.
+
+### [Macro] with-array, with-arrays
+
+    WITH-ARRAY
+    WITH-ARRAYS
+
+To be described.
+
+### [Function] alloc-array
+
+    ALLOC-ARRAY
+
+To be described.
+
+### [Function] free-array
+
+    FREE-ARRAY
+
+To be described.
+
+### [Function] array-size
+
+    ARRAY-SIZE
+
+To be described.
+
+### [Accessor] array-aref
+
+    ARRAY-AREF
+    SETF ARRAY-AREF
+
+To be described.
+
+### [Macro] with-cuda
+
+    WITH-CUDA (dev-id) &body body
+
+To be described.
+
+### [Function] synchronize
+
+    SYNCHRONIZE
+
+Explicitly synchronizes CUDA context with `cl-cuda:synchronize-context`. This function is useful in case that you want to get timing data of CUDA kernel launching with `time` macro because CUDA kernel functions are executed asynchronously so it pass through `time` form in a moment without it. It does nothing if CUDA is not used.
+
+**Example:**
+
+    (with-cuda (0)
+      (time
+        (progn
+          (do-something)
+          (synchronize))))
+
+### [Special Variable] \*use-thread-p\*
+
+To be described.
+
+## Kernel Description Language
+
+### [Type] int, int2, int3, int4
+
+To be described.
+
+### [Type] float, float2, float3, float4
+
+To be described.
+
+### [Type] double, double2, double3, double4
+
+To be described.
+
+### [Syntax] the
+
+    THE type value
+
+To be described.
+
+### [Syntax] if
+
+    IF test-form then-form else-form
+
+To be described.
+
+### [Syntax] let
+
+    LET
+
+To be described.
+
+### [Syntax] flet
+
+    FLET
+
+To be described.
+
+### [Syntax] labels
+
+    LABELS
+
+To be described.
+
+### [Syntax] set
+
+    SET place value
+
+To be described.
+
+### [Built-in Variable] i
+
+To be described.
+
+### [Built-in Variable] n
+
+To be described.
+
+### [Built-in Function] +, -, *, /, mod
+
+To be described.
+
+### [Built-in Function] \*., .\*, /.
+
+To be described.
+
+### [Built-in Function] <, >
+
+To be described.
+
+### [Built-in Macro] ...
+
+To be described.
+
 ## Author
 
 * Masayuki Takagi (kamonama@gmail.com)
