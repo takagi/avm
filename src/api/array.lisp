@@ -258,8 +258,95 @@
 
 (defgeneric sync-array (array from to))
 
+(defmacro values-float3 (form)
+  `(multiple-value-bind (x y z) ,form
+     (cl-cuda:make-float3 x y z)))
+
+(defmacro values-float4 (form)
+  `(multiple-value-bind (x y z w) ,form
+     (cl-cuda:make-float4 x y z w)))
+
+(defmacro values-double3 (form)
+  `(multiple-value-bind (x y z) ,form
+     (cl-cuda:make-double3 x y z)))
+
+(defmacro values-double4 (form)
+  `(multiple-value-bind (x y z w) ,form
+     (cl-cuda:make-double4 x y z w)))
+
 (defmethod sync-array (array (from (eql :lisp)) (to (eql :cuda)))
-  (error "Not implemented."))
+  ;; Synchronize tuple array to host memory.
+  (let* ((tuple-array (array-tuple-array array))
+         (host-ptr (array-host-ptr array))
+         (base-type (array-base-type array))
+         (size (array-size array)))
+    (ecase base-type
+      (int
+       (dotimes (i size)
+         (setf (cl-cuda:host-memory-aref host-ptr 'cl-cuda:int i)
+               (tuple-aref tuple-array 'int i))))
+      (int2 (error "Not implemented."))
+      (int3 (error "Not implemented."))
+      (int4 (error "Not implemented."))
+      (float
+       (dotimes (i size)
+         (setf (cl-cuda:host-memory-aref host-ptr 'cl-cuda:float i)
+               (tuple-aref tuple-array 'float i))))
+      (float2 (error "Not implemented."))
+      (float3
+       (dotimes (i size)
+         (setf (cl-cuda:host-memory-aref host-ptr 'cl-cuda:float3 i)
+               (values-float3
+                (tuple-aref tuple-array 'float3 i)))))
+      (float4
+       (dotimes (i size)
+         (setf (cl-cuda:host-memory-aref host-ptr 'cl-cuda:float4 i)
+               (values-float4
+                (tuple-aref tuple-array 'float4 i)))))
+      (double
+       (dotimes (i size)
+         (setf (cl-cuda:host-memory-aref host-ptr 'cl-cuda:double i)
+               (tuple-aref tuple-array 'double i))))
+      (double2 (error "Not implemented."))
+      (double3
+       (dotimes (i size)
+         (setf (cl-cuda:host-memory-aref host-ptr 'cl-cuda:double3 i)
+               (values-double3
+                (tuple-aref tuple-array 'double3 i)))))
+      (double4
+       (dotimes (i size)
+         (setf (cl-cuda:host-memory-aref host-ptr 'cl-cuda:double4 i)
+               (values-double4
+                (tuple-aref tuple-array 'double4 i)))))
+      ))
+  ;; Synchronize host to device.
+  (let ((host-ptr (array-host-ptr array))
+        (device-ptr (array-device-ptr array))
+        (cuda-type (lisp->cuda-type (array-base-type array)))
+        (size (array-size array)))
+    (cl-cuda::memcpy-host-to-device device-ptr host-ptr cuda-type size)))
+
+(defun float3-values (x)
+  (values (cl-cuda:float3-x x)
+          (cl-cuda:float3-y x)
+          (cl-cuda:float3-z x)))
+
+(defun float4-values (x)
+  (values (cl-cuda:float4-x x)
+          (cl-cuda:float4-y x)
+          (cl-cuda:float4-z x)
+          (cl-cuda:float4-w x)))
+
+(defun double3-values (x)
+  (values (cl-cuda:double3-x x)
+          (cl-cuda:double3-y x)
+          (cl-cuda:double3-z x)))
+
+(defun double4-values (x)
+  (values (cl-cuda:double4-x x)
+          (cl-cuda:double4-y x)
+          (cl-cuda:double4-z x)
+          (cl-cuda:double4-w x)))
 
 (defmethod sync-array (array (from (eql :cuda)) (to (eql :lisp)))
   ;; Synchronize device to host.
@@ -272,12 +359,46 @@
   (let* ((tuple-array (array-tuple-array array))
          (host-ptr (array-host-ptr array))
          (base-type (array-base-type array))
-         (cuda-type (lisp->cuda-type base-type))
          (size (array-size array)))
-    (dotimes (i size)
-      ;; TODO: Not work with vector types.
-      (setf (tuple-aref tuple-array base-type i)
-            (cl-cuda:host-memory-aref host-ptr cuda-type i)))))
+    (ecase base-type
+      (int
+       (dotimes (i size)
+         (setf (tuple-aref tuple-array 'int i)
+               (cl-cuda:host-memory-aref host-ptr 'cl-cuda:int i))))
+      (int2 (error "Not implemented."))
+      (int3 (error "Not implemented."))
+      (int4 (error "Not implemented."))
+      (float
+       (dotimes (i size)
+         (setf (tuple-aref tuple-array 'float i)
+               (cl-cuda:host-memory-aref host-ptr 'cl-cuda:float i))))
+      (float2 (error "Not implemented."))
+      (float3
+       (dotimes (i size)
+         (setf (tuple-aref tuple-array 'float3 i)
+               (float3-values
+                (cl-cuda:host-memory-aref host-ptr 'cl-cuda:float3 i)))))
+      (float4
+       (dotimes (i size)
+         (setf (tuple-aref tuple-array 'float4 i)
+               (float4-values
+                (cl-cuda:host-memory-aref host-ptr 'cl-cuda:float4 i)))))
+      (double
+       (dotimes (i size)
+         (setf (tuple-aref tuple-array 'double i)
+               (cl-cuda:host-memory-aref host-ptr 'cl-cuda:double i))))
+      (double2 (error "Not implemented."))
+      (double3
+       (dotimes (i size)
+         (setf (tuple-aref tuple-array 'double3 i)
+               (double3-values
+                (cl-cuda:host-memory-aref host-ptr 'cl-cuda:double3 i)))))
+      (double4
+       (dotimes (i size)
+         (setf (tuple-aref tuple-array 'double4 i)
+               (double4-values
+                (cl-cuda:host-memory-aref host-ptr 'cl-cuda:double4 i)))))
+      )))
 
 (defun set-array-lisp-dirty (array)
   (unless (array-lisp-up-to-date array)
