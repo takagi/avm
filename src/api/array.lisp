@@ -245,7 +245,7 @@
             (setf (tuple-aref tuple-array base-type ,temp-index)
                   (values ,v1 ,v2 ,v3 ,v4)))
           ;; Set dirty flag for lisp to array.
-          (set-array-lisp-dirty ,getter :lisp))
+          (set-array-lisp-dirty ,getter))
        ;; Return element of tuple array.
        `(let ((tuple-array (array-tuple-array ,getter))
               (base-type (array-base-type ,getter)))
