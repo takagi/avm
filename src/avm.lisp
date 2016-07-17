@@ -38,6 +38,7 @@
            ;; CUDA
            :with-cuda
            :*use-cuda-p*
+           :synchronize
            ;; Arrays
            :avm-array
            :array-p

@@ -8,7 +8,8 @@
   (:use :cl
         :avm)
   (:export :with-cuda
-           :*use-cuda-p*))
+           :*use-cuda-p*
+           :synchronize))
 (in-package :avm.api.cuda)
 
 
@@ -26,3 +27,7 @@
            (cl-cuda:with-cuda (,dev-id)
              (aux)))
          (aux))))
+
+(defun synchronize ()
+  (when cl-cuda:*cuda-context*
+    (cl-cuda:synchronize-context)))

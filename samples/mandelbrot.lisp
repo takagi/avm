@@ -42,6 +42,5 @@
     (with-arrays ((xs int (* 2048 2048)))
       (time (progn
        (mandelbrot xs)
-       (when *use-cuda-p*
-         (cl-cuda:synchronize-context))))
+       (synchronize)))
       (draw-mandelbrot #P"~/Desktop/mandelbrot.pgm" xs))))
