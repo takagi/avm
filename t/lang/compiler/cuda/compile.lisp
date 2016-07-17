@@ -4,7 +4,7 @@
 |#
 
 (in-package :cl-user)
-(defpackage avm-test.lang.compiler.lisp.compile
+(defpackage avm-test.lang.compiler.cuda.compile
   (:use :cl
         :prove
         :avm
@@ -12,7 +12,7 @@
         :avm.lang.appenv
         :avm.lang.funenv
         ))
-(in-package :avm-test.lang.compiler.lisp.compile)
+(in-package :avm-test.lang.compiler.cuda.compile)
 
 
 (plan nil)
