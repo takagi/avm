@@ -49,7 +49,16 @@
                        (:file "compile-type")
                        (:file "varenv")
                        (:file "compile")
-                       (:file "lang")))))))
+                       (:file "lang")))
+                     (:module "cuda"
+                      :serial t
+                      :components
+                      ((:file "built-in")
+                       (:file "k-normal")
+                       (:file "compile-type")
+                       (:file "compile")
+                       (:file "lang")))
+                     ))))
                  (:module "api"
                   :serial t
                   :components

@@ -66,28 +66,27 @@
      collect (query-unienv type uenv)))
 
 (defmethod compile-kernel-function ((engine (eql :lisp)) name args body kernel)
-  (let ((args1 (append '(i n) args))
-        (body1 (convert-functions
+  (let ((body1 (convert-functions
                 (binarize body))))
     ;; Check free variable existence.
     (let ((vars (kernel->vars kernel)))
-      (check-free-variable args1 body1 vars))
+      (check-free-variable args body1 vars))
     ;; Type inference.
     (let* ((tenv (kernel->typenv kernel))
            (aenv (empty-appenv))
            (uenv (empty-unienv))
            (fenv (kernel->funenv kernel)))
       (multiple-value-bind (ftype aenv1 uenv1)
-          (infer-function name args1 body1 tenv aenv uenv fenv)
+          (infer-function name args body1 tenv aenv uenv fenv)
         ;; Compilation.
         (let ((tenv1 (subst-typenv uenv1 tenv))
               (aenv2 (subst-appenv uenv1 aenv1))
               (ftype1 (subst-ftype uenv1 ftype))
               (venv (empty-varenv)))
-          (multiple-value-bind (name1 args2 body2)
-              (compile-function name ftype1 args1 body1 venv tenv1 aenv2 fenv
+          (multiple-value-bind (name1 args1 body2)
+              (compile-function name ftype1 args body1 venv tenv1 aenv2 fenv
                                 :entry-p t :rec-p t)
-            (values name1 ftype1 args1 `(defun ,name1 ,args2 ,@body2))))))))
+            (values name1 ftype1 `(defun ,name1 ,args1 ,@body2))))))))
 
 (defmethod compile-kernel-global (kernel name (engine (eql :lisp)))
   nil)

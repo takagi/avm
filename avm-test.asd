@@ -25,8 +25,12 @@
                     ((:module "lisp"
                       :serial t
                       :components
-                      ((:test-file "compile")
-                       )))))))))
+                      ((:test-file "compile")))
+                     (:module "cuda"
+                      :serial t
+                      :components
+                      ((:test-file "compile")))
+                     )))))))
   :description "Test system for avm"
 
   :defsystem-depends-on (:prove-asdf)

@@ -34,15 +34,20 @@
     (error "The argument I is reserved."))
   (unless (not (member 'n args))
     (error "The argument N is reserved."))
-  ;; Compile and define kernel function.
-  (let ((kernel (kernel-manager-kernel manager)))
-    ;; Compile kernel function.
-    (multiple-value-bind (lisp-name type args1 lisp-form)
-        (compile-kernel-function :lisp name args body kernel)
-      ;; Define kernel function to kernel.
-      (kernel-define-function kernel name lisp-name type args1 body)
-      ;; Return compiled form.
-      (values lisp-name (include-vector-type-p type) lisp-form))))
+  (let ((args1 (append '(i n) args)))
+    ;; Compile and define kernel function.
+    (let ((kernel (kernel-manager-kernel manager)))
+      ;; Compile kernel function.
+      (multiple-value-bind (lisp-name ftype lisp-form)
+          (compile-kernel-function :lisp name args1 body kernel)
+        (multiple-value-bind (cuda-name _ cuda-form)
+            (compile-kernel-function :cuda name args1 body kernel)
+          (declare (ignore _))
+          ;; Define kernel function to kernel.
+          (kernel-define-function kernel name lisp-name ftype args1 body)
+          ;; Return compiled form.
+          (values lisp-name lisp-form cuda-name cuda-form
+                  (include-vector-type-p ftype)))))))
 
 (defun include-vector-type-p (type)
   (some #'vector-type-p (function-arg-types type)))
