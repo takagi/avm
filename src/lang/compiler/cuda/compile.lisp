@@ -41,7 +41,7 @@
                     fenv)))
     (multiple-value-bind (body1 funcs1)
         (compile-form body :tail aenv fenv1 funcs)
-      (let ((func (%compile-function name ftype args body1 entry-p)))
+      (let ((func (%compile-function name1 ftype args body1 entry-p)))
         (if (not entry-p)
             (values name1 (cons func funcs1))
             (multiple-value-bind (caller-name caller-func)
@@ -49,9 +49,8 @@
               (values caller-name (cons caller-func
                                    (cons func funcs1)))))))))
 
-(defun %compile-function (name ftype args body entry-p)
-  (let ((name1 (compile-name name entry-p nil))
-        (args1 (loop for arg in args
+(defun %compile-function (name1 ftype args body entry-p)
+  (let ((args1 (loop for arg in args
                      for type in (function-arg-types ftype)
                      for type1 = (compile-type type)
                   collect (list arg type1)))
