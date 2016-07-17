@@ -45,6 +45,15 @@
            :set-p
            :set-place
            :set-value
+           ;; Place
+           :place-p
+           :reference-place-p
+           :vector-place-p
+           :vector-place-operator
+           :vector-place-value
+           :array-place-p
+           :array-place-value
+           :array-place-index
            ;; Application
            :apply-p
            :apply-operator
@@ -251,13 +260,74 @@
 
 (defun set-place (form)
   (cl-pattern:match form
-    (('set place _) place)
+    (('set place _)
+     (unless (place-p place)
+       (error "The form ~S is malformed." form))
+     place)
     (_ (error "The form ~S is malformed." form))))
 
 (defun set-value (form)
   (cl-pattern:match form
     (('set _ value) value)
     (_ (error "The form ~S is malformed." form))))
+
+
+;;
+;; Place
+
+(defun place-p (object)
+  (or (reference-place-p object)
+      (vector-place-p object)
+      (array-place-p object)))
+
+(defun reference-place-p (object)
+  (reference-p object))
+
+(defun vector-place-p (object)
+  (cl-pattern:match object
+    ((op . _)
+     (member op
+      '(int2-x int2-y
+        int3-x int3-y int3-z
+        int4-x int4-y int4-z int4-w
+        float2-x float2-y
+        float3-x float3-y float3-z
+        float4-x float4-y float4-z float4-w
+        double2-x double2-y
+        double3-x double3-y double3-z
+        double4-x double4-y double4-z double4-w)))
+    (_ nil)))
+
+(defun vector-place-operator (place)
+  (cl-pattern:match place
+    ((operator _) operator)
+    (_ (error "The form ~S is malformed." place))))
+
+(defun vector-place-value (place)
+  (cl-pattern:match place
+    ((_ value)
+     (unless (place-p value)
+       (error "The form ~S is malformed." value))
+     value)
+    (_ (error "The form ~S is malformed." place))))
+
+(defun array-place-p (object)
+  (cl-pattern:match object
+    (('aref . _) t)
+    (_ nil)))
+
+(defun array-place-value (place)
+  (cl-pattern:match place
+    (('aref value _)
+     (unless (place-p value)
+       (error "The form ~S is malformed." value))
+     value)
+    (_ (error "The form ~S is malformed." place))))
+
+(defun array-place-index (place)
+  (cl-pattern:match place
+    (('aref _ index) index)
+    (_ (error "The form ~S is malformed." place))))
 
 
 ;;

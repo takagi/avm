@@ -29,7 +29,8 @@
                      (:module "cuda"
                       :serial t
                       :components
-                      ((:test-file "compile")))
+                      ((:test-file "k-normal")
+                       (:test-file "compile")))
                      )))))))
   :description "Test system for avm"
 
