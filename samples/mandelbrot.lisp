@@ -43,4 +43,4 @@
       (time (progn
        (mandelbrot xs)
        (synchronize)))
-      (draw-mandelbrot #P"~/Desktop/mandelbrot.pgm" xs))))
+      (draw-mandelbrot #P"mandelbrot.pgm" xs))))
