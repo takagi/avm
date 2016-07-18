@@ -31,7 +31,11 @@
                       :components
                       ((:test-file "k-normal")
                        (:test-file "compile")))
-                     )))))))
+                     ))))
+                 (:module "api"
+                  :serial t
+                  :components
+                  ((:test-file "cuda"))))))
   :description "Test system for avm"
 
   :defsystem-depends-on (:prove-asdf)
