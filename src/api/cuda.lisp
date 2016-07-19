@@ -35,20 +35,20 @@
            (aux)))))
 
 (defun cuda-state-not-available-p ()
-  (not cl-cuda:*cuda-context*))
+  (not (boundp 'cl-cuda:*cuda-context*)))
 
 (defun cuda-state-available-p ()
-  (and cl-cuda:*cuda-context*
+  (and (boundp 'cl-cuda:*cuda-context*)
        (not *use-cuda-p*)))
 
 (defun cuda-state-used-p ()
-  (and cl-cuda:*cuda-context*
+  (and (boundp 'cl-cuda:*cuda-context*)
        *use-cuda-p*
        t))
 
 (defun cuda-available-p ()
   ;; Equivalent to CUDA state Available or Used.
-  (and cl-cuda:*cuda-context*
+  (and (boundp 'cl-cuda:*cuda-context*)
        t))
 
 (defun synchronize ()
