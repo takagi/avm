@@ -59,7 +59,7 @@
             (loop for ,arg in (list ,@args)
                when (array-p ,arg)
                do (array-ensure-cuda-up-to-date ,arg)
-                  (set-array-cuda-dirty ,arg))
+                  (array-set-cuda-dirty ,arg))
             ;; Launch kernel.
             (let ,(array-cuda-bindings args1 args)
               (let ((grid-dim (list (ceiling n 64) 1 1))
@@ -71,7 +71,7 @@
             (loop for ,arg in (list ,@args)
                when (array-p ,arg)
                do (array-ensure-lisp-up-to-date ,arg)
-                  (set-array-lisp-dirty ,arg))
+                  (array-set-lisp-dirty ,arg))
             ;; Launch kernel.
             (let (,@(array-lisp-bindings args1 args)
                   (ranges (compute-ranges 2 n)))
@@ -90,7 +90,7 @@
             (loop for ,arg in (list ,@args)
                when (array-p ,arg)
                do (array-ensure-lisp-up-to-date ,arg)
-                  (set-array-lisp-dirty ,arg))
+                  (array-set-lisp-dirty ,arg))
             ;; Launch kernel.
             (let ,(array-lisp-bindings args1 args)
               (dotimes (i n)

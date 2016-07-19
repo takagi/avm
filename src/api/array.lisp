@@ -16,8 +16,8 @@
            :with-arrays
            :array-aref
            :array-size
-           :set-array-lisp-dirty
-           :set-array-cuda-dirty
+           :array-set-lisp-dirty
+           :array-set-cuda-dirty
            :array-ensure-lisp-up-to-date
            :array-ensure-cuda-up-to-date
            ))
@@ -245,7 +245,7 @@
             (setf (tuple-aref tuple-array base-type ,temp-index)
                   (values ,v1 ,v2 ,v3 ,v4)))
           ;; Set dirty flag for lisp to array.
-          (set-array-lisp-dirty ,getter))
+          (array-set-lisp-dirty ,getter))
        ;; Return element of tuple array.
        `(let ((tuple-array (array-tuple-array ,getter))
               (base-type (array-base-type ,getter)))
@@ -406,12 +406,12 @@
   (setf (array-lisp-up-to-date array) t)
   (setf (array-cuda-up-to-date array) t))
 
-(defun set-array-lisp-dirty (array)
+(defun array-set-lisp-dirty (array)
   (unless (array-lisp-up-to-date array)
     (error "Ensure array up-to-date for lisp first."))
   (setf (array-cuda-up-to-date array) nil))
 
-(defun set-array-cuda-dirty (array)
+(defun array-set-cuda-dirty (array)
   (unless (array-cuda-up-to-date array)
     (error "Ensure array up-to-date for CUDA first."))
   (setf (array-lisp-up-to-date array) nil))

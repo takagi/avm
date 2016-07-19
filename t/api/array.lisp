@@ -59,7 +59,7 @@
 
   (with-cuda (0)
     (with-array (xs int 1)
-      (set-array-cuda-dirty xs)
+      (array-set-cuda-dirty xs)
       (array-ensure-lisp-up-to-date xs)
       (ok (avm.api.array::array-lisp-up-to-date xs)
           "Lisp memory is not up-to-date, device memory is.")))
@@ -88,7 +88,7 @@
 
   (with-cuda (0)
     (with-array (xs int 1)
-      (set-array-lisp-dirty xs)
+      (array-set-lisp-dirty xs)
       (array-ensure-cuda-up-to-date xs)
       (ok (avm.api.array::array-cuda-up-to-date xs)
           "Device memory is not up-to-date, Lisp memory is.")))
