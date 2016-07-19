@@ -324,7 +324,10 @@
         (device-ptr (array-device-ptr array))
         (cuda-type (lisp->cuda-type (array-base-type array)))
         (size (array-size array)))
-    (cl-cuda::memcpy-host-to-device device-ptr host-ptr cuda-type size)))
+    (cl-cuda::memcpy-host-to-device device-ptr host-ptr cuda-type size))
+  ;; Update array up-to-date state.
+  (setf (array-lisp-up-to-date array) t)
+  (setf (array-cuda-up-to-date array) t))
 
 (defun float3-values (x)
   (values (cl-cuda:float3-x x)
@@ -398,7 +401,10 @@
          (setf (tuple-aref tuple-array 'double4 i)
                (double4-values
                 (cl-cuda:host-memory-aref host-ptr 'cl-cuda:double4 i)))))
-      )))
+      ))
+  ;; Update array up-to-date state.
+  (setf (array-lisp-up-to-date array) t)
+  (setf (array-cuda-up-to-date array) t))
 
 (defun set-array-lisp-dirty (array)
   (unless (array-lisp-up-to-date array)
