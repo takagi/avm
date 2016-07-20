@@ -7,6 +7,7 @@
 (defpackage avm.api.array
   (:use :cl
         :avm
+        :avm.api.cuda
         :avm.lang.data)
   (:export :avm-array
            :array-p
@@ -178,12 +179,12 @@
   (cuda-up-to-date :cuda-up-to-date))
 
 (defun alloc-array (type dimensions)
-  (let ((tuple-array (make-tuple-array type dimensions)))
-    (let* ((cuda-type (lisp->cuda-type type))
-           (host-ptr (and *use-cuda-p*
-                      (cl-cuda:alloc-host-memory cuda-type dimensions)))
-           (device-ptr (and *use-cuda-p*
-                        (cl-cuda:alloc-device-memory cuda-type dimensions))))
+  (let ((cuda-type (lisp->cuda-type type)))
+    (let ((tuple-array (make-tuple-array type dimensions))
+          (host-ptr (and (cuda-available-p)
+                     (cl-cuda:alloc-host-memory cuda-type dimensions)))
+          (device-ptr (and (cuda-available-p)
+                       (cl-cuda:alloc-device-memory cuda-type dimensions))))
       (%make-array :base-type type
                    :tuple-array tuple-array
                    :host-ptr host-ptr
