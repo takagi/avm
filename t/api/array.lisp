@@ -64,6 +64,18 @@
               simple-error
               "CUDA not available on array allocation.")))
 
+(subtest "check-array-not-freed"
+
+  (let ((xs (alloc-array 'int 1)))
+    (ok (null (avm.api.array::check-array-not-freed xs))
+        "Array not freed."))
+
+  (let ((xs (alloc-array 'int 1)))
+    (free-array xs)
+    (is-error (avm.api.array::check-array-not-freed xs)
+              simple-error
+              "Array already freed.")))
+
 (subtest "alloc-array"
 
   (with-cuda (0)
