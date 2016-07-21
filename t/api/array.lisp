@@ -230,6 +230,75 @@
         'int
         "Base type int.")))
 
+(subtest "free-array"
+
+  ;; CUDA-AVAILABLE-P                     : T
+  ;; ARRAY-CUDA-AVAILABLE-ON-ALLOCATION-P : T
+  ;; ARRAY-FREED-P                        : NIL
+  (with-cuda (0)
+    (let ((xs (alloc-array 'int 1)))
+      (free-array xs)
+      (ok (and (null (avm.api.array::array-%tuple-array xs))
+               (cffi:null-pointer-p (avm.api.array::array-%host-ptr xs))
+               (= 0 (avm.api.array::array-%device-ptr xs))
+               (eql :%lisp-up-to-date
+                    (avm.api.array::array-%lisp-up-to-date xs))
+               (eql :%cuda-up-to-date
+                    (avm.api.array::array-%cuda-up-to-date xs)))
+          "Free array CUDA availabe on allocation with CUDA availabe.")))
+
+  ;; CUDA-AVAILABLE-P                     : NIL
+  ;; ARRAY-CUDA-AVAILABLE-ON-ALLOCATION-P : T
+  ;; ARRAY-FREED-P                        : NIL
+  (let (xs)
+    (with-cuda (0)
+      (setf xs (alloc-array 'int 1)))
+    (is-error
+     (free-array xs)
+     simple-error
+     "Not free array CUDA availabe on allocation with not CUDA availabe."))
+
+  ;; CUDA-AVAILABLE-P                     : T
+  ;; ARRAY-CUDA-AVAILABLE-ON-ALLOCATION-P : NIL
+  ;; ARRAY-FREED-P                        : NIL
+  (let ((xs (alloc-array 'int 1)))
+    (with-cuda (0)
+      (free-array xs))
+    (ok (and (null (avm.api.array::array-%tuple-array xs))
+             (null (avm.api.array::array-%host-ptr xs))
+             (null (avm.api.array::array-%device-ptr xs))
+             (eql :%lisp-up-to-date
+                  (avm.api.array::array-%lisp-up-to-date xs))
+             (eql :%cuda-up-to-date
+                  (avm.api.array::array-%cuda-up-to-date xs)))
+        "Free array CUDA not availabe on allocation with CUDA availabe."))
+
+  ;; CUDA-AVAILABLE-P                     : NIL
+  ;; ARRAY-CUDA-AVAILABLE-ON-ALLOCATION-P : NIL
+  ;; ARRAY-FREED-P                        : NIL
+  (let ((xs (alloc-array 'int 1)))
+    (free-array xs)
+    (ok (and (null (avm.api.array::array-%tuple-array xs))
+             (null (avm.api.array::array-%host-ptr xs))
+             (null (avm.api.array::array-%device-ptr xs))
+             (eql :%lisp-up-to-date
+                  (avm.api.array::array-%lisp-up-to-date xs))
+             (eql :%cuda-up-to-date
+                  (avm.api.array::array-%cuda-up-to-date xs)))
+        "Free array not CUDA availabe on allocation with not CUDA availabe."))
+
+  ;; CUDA-AVAILABLE-P                     : any
+  ;; ARRAY-CUDA-AVAILABLE-ON-ALLOCATION-P : any
+  ;; ARRAY-FREED-P                        : T
+  (let ((xs (alloc-array 'int 1)))
+    (free-array xs)
+    (ok (null (free-array xs))
+        "Array already freed."))
+
+  (is-error (free-array :foo)
+            type-error
+            "Invalid array."))
+
 (subtest "array-aref"
 
   (with-arrays ((xs float4 1))

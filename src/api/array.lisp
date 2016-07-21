@@ -250,16 +250,25 @@
                      :%cuda-up-to-date :%cuda-up-to-date))))
 
 (defun free-array (array)
-  ;; Free device memory.
-  (when (and *use-cuda-p*
-             (array-device-ptr array))
-    (cl-cuda:free-device-memory (array-device-ptr array))
-    (setf (array-device-ptr array) nil))
-  ;; Free host memory.
-  (when (and *use-cuda-p*
-             (array-host-ptr array))
-    (cl-cuda:free-host-memory (array-host-ptr array))
-    (setf (array-host-ptr array) nil)))
+  ;; Do nothing if already freed.
+  (when (array-freed-p array)
+    (return-from free-array (values)))
+  ;; Check CUDA availability before freeing if CUDA available on allocation.
+  (when (array-cuda-available-on-allocation-p array)
+    (check-cuda-available))
+  ;; Delete reference to tuple array.
+  (setf (array-%tuple-array array) nil)
+  ;; Free device and host memory.
+  (when (array-cuda-available-on-allocation-p array)
+    ;; Free device memory.
+    (cl-cuda:free-device-memory (array-%device-ptr array))
+    (setf (array-%device-ptr array) 0)
+    (setf (array-%cuda-up-to-date array) :%cuda-up-to-date)
+    ;; Free host memory.
+    (cl-cuda:free-host-memory (array-%host-ptr array))
+    (setf (array-%host-ptr array) (cffi:null-pointer))
+    (setf (array-%lisp-up-to-date array) :%lisp-up-to-date))
+  (values))
 
 (defmacro with-array ((var type dimensions) &body body)
   `(let ((,var (alloc-array ',type ,dimensions)))
