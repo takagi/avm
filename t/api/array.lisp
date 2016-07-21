@@ -14,6 +14,21 @@
 
 (plan nil)
 
+
+;;
+;; Array
+
+(subtest "array-cuda-available-on-allocation-p"
+
+  (with-cuda (0)
+    (with-array (xs int 1)
+      (ok (avm.api.array::array-cuda-available-on-allocation-p xs)
+          "CUDA available on allocation.")))
+
+  (with-array (xs int 1)
+    (ok (not (avm.api.array::array-cuda-available-on-allocation-p xs))
+        "CUDA not available on allocation.")))
+
 (subtest "alloc-array"
 
   (with-cuda (0)

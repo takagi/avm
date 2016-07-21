@@ -178,6 +178,10 @@
   (%lisp-up-to-date :%lisp-up-to-date)
   (%cuda-up-to-date :%cuda-up-to-date))
 
+(defun array-cuda-available-on-allocation-p (array)
+  (and (array-%device-ptr array)
+       t))
+
 (defun alloc-array (type dimensions)
   (let ((cuda-type (lisp->cuda-type type)))
     (let ((tuple-array (make-tuple-array type dimensions))
