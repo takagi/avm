@@ -76,6 +76,18 @@
               simple-error
               "Array already freed.")))
 
+(subtest "array-tuple-array"
+
+  (with-array (xs int 1)
+    (ok (avm.api.array::array-tuple-array xs)
+        "Tuple array in array not freed."))
+
+  (let ((xs (alloc-array 'int 1)))
+    (free-array xs)
+    (is-error (avm.api.array::array-tuple-array xs)
+              simple-error
+              "Tuple array in array freed.")))
+
 (subtest "alloc-array"
 
   (with-cuda (0)
