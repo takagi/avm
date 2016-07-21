@@ -52,6 +52,18 @@
             simple-error
             "CUDA not available."))
 
+(subtest "check-array-cuda-available-on-allocation"
+
+  (with-cuda (0)
+    (with-array (xs int 1)
+      (ok (null (avm.api.array::check-array-cuda-available-on-allocation xs))
+          "CUDA available on array allocation.")))
+
+  (with-array (xs int 1)
+    (is-error (avm.api.array::check-array-cuda-available-on-allocation xs)
+              simple-error
+              "CUDA not available on array allocation.")))
+
 (subtest "alloc-array"
 
   (with-cuda (0)
