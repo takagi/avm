@@ -88,15 +88,14 @@
                  "Device memory allocated with CUDA available."))
         (free-array xs))))
 
-  (with-cuda (nil)
-    (let ((xs (alloc-array 'int 1)))
-      (unwind-protect
-           (progn
-             (ok (null (avm.api.array::array-host-ptr xs))
-                 "Host memory not allocated with not CUDA available.")
-             (ok (null (avm.api.array::array-device-ptr xs))
-                 "Device memory not allocated with not CUDA available."))
-        (free-array xs))))
+  (let ((xs (alloc-array 'int 1)))
+    (unwind-protect
+         (progn
+           (ok (null (avm.api.array::array-%host-ptr xs))
+               "Host memory not allocated with not CUDA available.")
+           (ok (null (avm.api.array::array-%device-ptr xs))
+               "Device memory not allocated with not CUDA available."))
+      (free-array xs)))
   )
 
 (subtest "array-aref"
