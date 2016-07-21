@@ -16,6 +16,7 @@
            :with-array
            :with-arrays
            :array-aref
+           :array-base-type
            :array-size
            :array-set-lisp-dirty
            :array-set-cuda-dirty
