@@ -42,6 +42,16 @@
       (free-array xs)
       (ok (avm.api.array::array-freed-p xs)))))
 
+(subtest "check-cuda-available"
+
+  (with-cuda (0)
+    (ok (null (avm.api.array::check-cuda-available))
+        "CUDA available."))
+
+  (is-error (avm.api.array::check-cuda-available)
+            simple-error
+            "CUDA not available."))
+
 (subtest "alloc-array"
 
   (with-cuda (0)

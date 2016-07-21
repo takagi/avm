@@ -185,6 +185,10 @@
 (defun array-freed-p (array)
   (null (array-%tuple-array array)))
 
+(defun check-cuda-available ()
+  (unless (cuda-available-p)
+    (error "CUDA not available.")))
+
 (defun alloc-array (type dimensions)
   (let ((cuda-type (lisp->cuda-type type)))
     (let ((tuple-array (make-tuple-array type dimensions))
