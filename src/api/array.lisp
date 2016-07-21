@@ -222,6 +222,13 @@
   (check-array-not-freed array)
   (array-%lisp-up-to-date array))
 
+(defun array-cuda-up-to-date-p (array)
+  (check-type array avm-array)
+  (check-cuda-available)
+  (check-array-cuda-available-on-allocation array)
+  (check-array-not-freed array)
+  (array-%cuda-up-to-date array))
+
 (defun alloc-array (type dimensions)
   (let ((cuda-type (lisp->cuda-type type)))
     (let ((tuple-array (make-tuple-array type dimensions))

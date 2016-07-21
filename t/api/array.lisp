@@ -176,6 +176,35 @@
             type-error
             "Invalid array."))
 
+(subtest "array-cuda-up-to-date-p"
+
+  (with-cuda (0)
+    (with-array (xs int 1)
+      (ok (eq t (avm.api.array::array-cuda-up-to-date-p xs))
+          "CUDA memory in array up-to-date.")))
+
+  (with-array (xs int 1)
+    (is-error (avm.api.array::array-cuda-up-to-date-p xs)
+              simple-error
+              "CUDA not available."))
+
+  (with-array (xs int 1)
+    (with-cuda (0)
+      (is-error (avm.api.array::array-cuda-up-to-date-p xs)
+                simple-error
+                "CUDA not available on allocation.")))
+
+  (with-cuda (0)
+    (let ((xs (alloc-array 'int 1)))
+      (free-array xs)
+      (is-error (avm.api.array::array-cuda-up-to-date-p xs)
+                simple-error
+                "Array already freed.")))
+
+  (is-error (avm.api.array::array-cuda-up-to-date-p :foo)
+            type-error
+            "Invalid array."))
+
 (subtest "alloc-array"
 
   (with-cuda (0)
