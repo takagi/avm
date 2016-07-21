@@ -117,6 +117,36 @@
             type-error
             "Invalid array."))
 
+(subtest "array-device-ptr"
+
+  (with-cuda (0)
+    (with-array (xs int 1)
+      (ok (avm.api.array::array-device-ptr xs)
+          "Device pointer.")))
+
+  (with-array (xs int 1)
+    (is-error (avm.api.array::array-device-ptr xs)
+              simple-error
+              "CUDA not available."))
+
+  (with-array (xs int 1)
+    (with-cuda (0)
+      (is-error (avm.api.array::array-device-ptr xs)
+                simple-error
+                "CUDA not available on allocation.")))
+
+  (with-cuda (0)
+    (let ((xs (alloc-array 'int 1)))
+      (free-array xs)
+      (is-error (avm.api.array::array-device-ptr xs)
+                simple-error
+                "Array already freed.")))
+
+  (is-error (avm.api.array::array-device-ptr :foo)
+            type-error
+            "Invalid array.")
+  )
+
 (subtest "alloc-array"
 
   (with-cuda (0)

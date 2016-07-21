@@ -208,6 +208,13 @@
   (check-array-not-freed array)
   (array-%host-ptr array))
 
+(defun array-device-ptr (array)
+  (check-type array avm-array)
+  (check-cuda-available)
+  (check-array-cuda-available-on-allocation array)
+  (check-array-not-freed array)
+  (array-%device-ptr array))
+
 (defun alloc-array (type dimensions)
   (let ((cuda-type (lisp->cuda-type type)))
     (let ((tuple-array (make-tuple-array type dimensions))
