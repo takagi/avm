@@ -29,6 +29,19 @@
     (ok (not (avm.api.array::array-cuda-available-on-allocation-p xs))
         "CUDA not available on allocation.")))
 
+(subtest "array-freed-p"
+
+  (let ((xs (alloc-array 'int 1)))
+    (ok (not (avm.api.array::array-freed-p xs)))
+    (free-array xs)
+    (ok (avm.api.array::array-freed-p xs)))
+
+  (with-cuda (0)
+    (let ((xs (alloc-array 'int 1)))
+      (ok (not (avm.api.array::array-freed-p xs)))
+      (free-array xs)
+      (ok (avm.api.array::array-freed-p xs)))))
+
 (subtest "alloc-array"
 
   (with-cuda (0)

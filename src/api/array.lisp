@@ -182,6 +182,9 @@
   (and (array-%device-ptr array)
        t))
 
+(defun array-freed-p (array)
+  (null (array-%tuple-array array)))
+
 (defun alloc-array (type dimensions)
   (let ((cuda-type (lisp->cuda-type type)))
     (let ((tuple-array (make-tuple-array type dimensions))
