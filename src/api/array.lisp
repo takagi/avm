@@ -231,24 +231,23 @@
   (array-%cuda-up-to-date array))
 
 (defun alloc-array (type dimensions)
-  (let ((cuda-type (lisp->cuda-type type)))
-    (let ((tuple-array (make-tuple-array type dimensions))
-          (host-ptr (and (cuda-available-p)
-                     (cl-cuda:alloc-host-memory cuda-type dimensions)))
-          (device-ptr (and (cuda-available-p)
-                       (cl-cuda:alloc-device-memory cuda-type dimensions)))
-          (lisp-up-to-date (if (cuda-available-p)
-                               t
-                               :lisp-up-to-date))
-          (cuda-up-to-date (if (cuda-available-p)
-                               t
-                               :cuda-up-to-date)))
-      (%make-array :base-type type
-                   :%tuple-array tuple-array
-                   :%host-ptr host-ptr
-                   :%device-ptr device-ptr
-                   :%lisp-up-to-date lisp-up-to-date
-                   :%cuda-up-to-date cuda-up-to-date))))
+  (let ((tuple-array (make-tuple-array type dimensions)))
+    (if (cuda-available-p)
+        (let* ((cuda-type (lisp->cuda-type type))
+               (host-ptr (cl-cuda:alloc-host-memory cuda-type dimensions))
+               (device-ptr (cl-cuda:alloc-device-memory cuda-type dimensions)))
+          (%make-array :base-type type
+                       :%tuple-array tuple-array
+                       :%host-ptr host-ptr
+                       :%device-ptr device-ptr
+                       :%lisp-up-to-date t
+                       :%cuda-up-to-date t))
+        (%make-array :base-type type
+                     :%tuple-array tuple-array
+                     :%host-ptr nil
+                     :%device-ptr nil
+                     :%lisp-up-to-date :%lisp-up-to-date
+                     :%cuda-up-to-date :%cuda-up-to-date))))
 
 (defun free-array (array)
   ;; Free device memory.

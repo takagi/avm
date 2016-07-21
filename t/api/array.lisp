@@ -144,8 +144,7 @@
 
   (is-error (avm.api.array::array-device-ptr :foo)
             type-error
-            "Invalid array.")
-  )
+            "Invalid array."))
 
 (subtest "array-lisp-up-to-date-p"
 
@@ -208,24 +207,28 @@
 (subtest "alloc-array"
 
   (with-cuda (0)
-    (let ((xs (alloc-array 'int 1)))
-      (unwind-protect
-           (progn
-             (ok (avm.api.array::array-host-ptr xs)
-                 "Host memory allocated with CUDA available.")
-             (ok (avm.api.array::array-device-ptr xs)
-                 "Device memory allocated with CUDA available."))
-        (free-array xs))))
+    (with-array (xs int 1)
+      (ok (and (avm.api.array::array-%tuple-array xs)
+               (avm.api.array::array-%host-ptr xs)
+               (avm.api.array::array-%device-ptr xs)
+               (eql t (avm.api.array::array-%lisp-up-to-date xs))
+               (eql t (avm.api.array::array-%cuda-up-to-date xs)))
+          "Array allocated with CUDA available.")))
 
-  (let ((xs (alloc-array 'int 1)))
-    (unwind-protect
-         (progn
-           (ok (null (avm.api.array::array-%host-ptr xs))
-               "Host memory not allocated with not CUDA available.")
-           (ok (null (avm.api.array::array-%device-ptr xs))
-               "Device memory not allocated with not CUDA available."))
-      (free-array xs)))
-  )
+  (with-array (xs int 1)
+    (ok (and (avm.api.array::array-%tuple-array xs)
+             (null (avm.api.array::array-%host-ptr xs))
+             (null (avm.api.array::array-%device-ptr xs))
+             (eql :%lisp-up-to-date
+                  (avm.api.array::array-%lisp-up-to-date xs))
+             (eql :%cuda-up-to-date
+                  (avm.api.array::array-%cuda-up-to-date xs)))
+        "Array allocated with CUDA not available."))
+
+  (with-array (xs int 1)
+    (is (array-base-type xs)
+        'int
+        "Base type int.")))
 
 (subtest "array-aref"
 
