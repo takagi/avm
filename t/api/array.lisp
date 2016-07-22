@@ -299,6 +299,19 @@
             type-error
             "Invalid array."))
 
+(subtest "array-size"
+
+  (with-array (xs int 100)
+    (is (array-size xs)
+        100))
+
+  (let (xs)
+    (setf xs (alloc-array 'int 100))
+    (free-array xs)
+    (is-error (array-size xs)
+              simple-error
+              "Array already freed.")))
+
 (subtest "array-aref"
 
   (with-arrays ((xs float4 1))
