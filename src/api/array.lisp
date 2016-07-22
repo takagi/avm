@@ -283,9 +283,12 @@
       `(progn ,@body)))
 
 (defun array-aref (array index)
-  ;; Ensure array up-to-date for lisp.
-  (array-ensure-lisp-up-to-date array)
-  ;; Return element of tuple array.
+  (when (cuda-available-p)
+    (check-array-cuda-available-on-allocation array))
+  (when (array-cuda-available-on-allocation-p array)
+    (check-cuda-available))
+  (when (cuda-available-p)
+    (array-ensure-lisp-up-to-date array))
   (let ((tuple-array (array-tuple-array array))
         (base-type (array-base-type array)))
     (tuple-aref tuple-array base-type index)))

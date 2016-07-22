@@ -299,6 +299,69 @@
             type-error
             "Invalid array."))
 
+(defkernel fill-ones (xs)
+  (set (aref xs i) 1))
+
+(subtest "array-aref"
+
+  ;; CUDA-AVAILABLE-P                     : T
+  ;; ARRAY-CUDA-AVAILABLE-ON-ALLOCATION-P : T
+  ;; ARRAY-FREED-P                        : NIL
+  (with-cuda (0)
+    (with-array (xs int 1)
+      (setf (array-aref xs 0) 0)
+      (fill-ones xs)
+      (is (array-aref xs 0)
+          1
+          "Array CUDA availabe on allocation with CUDA availabe.")))
+
+  ;; CUDA-AVAILABLE-P                     : NIL
+  ;; ARRAY-CUDA-AVAILABLE-ON-ALLOCATION-P : T
+  ;; ARRAY-FREED-P                        : NIL
+  (let (xs)
+    (with-cuda (0)
+      (setf xs (alloc-array 'int 1)))
+    (is-error (array-aref xs 0)
+              simple-error
+              "Array CUDA availabe on allocation with not CUDA availabe."))
+
+  ;; CUDA-AVAILABLE-P                     : T
+  ;; ARRAY-CUDA-AVAILABLE-ON-ALLOCATION-P : NIL
+  ;; ARRAY-FREED-P                        : NIL
+  (with-array (xs int 1)
+    (with-cuda (0)
+      (is-error (array-aref xs 0)
+                simple-error
+                "Array not CUDA availabe on allocation with CUDA availabe.")))
+
+  ;; CUDA-AVAILABLE-P                     : NIL
+  ;; ARRAY-CUDA-AVAILABLE-ON-ALLOCATION-P : NIL
+  ;; ARRAY-FREED-P                        : NIL
+  (with-array (xs int 1)
+    (setf (array-aref xs 0) 1)
+    (is (array-aref xs 0)
+        1
+        "Array not CUDA availabe on allocation with not CUDA availabe."))
+
+  ;; CUDA-AVAILABLE-P                     : any
+  ;; ARRAY-CUDA-AVAILABLE-ON-ALLOCATION-P : any
+  ;; ARRAY-FREED-P                        : T
+  (let (xs)
+    (setf xs (alloc-array 'int 1))
+    (free-array xs)
+    (is-error (array-aref xs 0)
+              simple-error
+              "Array already freed."))
+
+  (is-error (array-aref :foo 0)
+            type-error
+            "Invalid array.")
+
+  (with-array (xs int 1)
+    (is-error (array-aref xs :foo)
+              error
+              "Invalid index.")))
+
 (subtest "array-size"
 
   (with-array (xs int 100)
@@ -311,16 +374,6 @@
     (is-error (array-size xs)
               simple-error
               "Array already freed.")))
-
-(subtest "array-aref"
-
-  (with-arrays ((xs float4 1))
-    (setf (array-aref xs 0) (values 1.0 2.0 3.0 4.0))
-    (is-values (array-aref xs 0)
-               '(1.0 2.0 3.0 4.0)))
-  )
-               
-
 
 (subtest "sync-array"
 
