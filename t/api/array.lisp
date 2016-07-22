@@ -362,6 +362,63 @@
               error
               "Invalid index.")))
 
+(subtest "setf array-aref"
+
+  ;; CUDA-AVAILABLE-P                     : T
+  ;; ARRAY-CUDA-AVAILABLE-ON-ALLOCATION-P : T
+  ;; ARRAY-FREED-P                        : NIL
+  (with-cuda (0)
+    (with-array (xs int 1)
+      (fill-ones xs)
+      (setf (array-aref xs 0) 2)
+      (is (array-aref xs 0)
+          2)
+      (ok (avm.api.array::array-%lisp-up-to-date xs))
+      (ok (not (avm.api.array::array-%cuda-up-to-date xs)))))
+
+  ;; CUDA-AVAILABLE-P                     : NIL
+  ;; ARRAY-CUDA-AVAILABLE-ON-ALLOCATION-P : T
+  ;; ARRAY-FREED-P                        : NIL
+  (let (xs)
+    (with-cuda (0)
+      (setf xs (alloc-array 'int 1)))
+    (is-error (setf (array-aref xs 0) 1)
+              simple-error
+              "Array CUDA availabe on allocation with not CUDA availabe."))
+
+  ;; CUDA-AVAILABLE-P                     : T
+  ;; ARRAY-CUDA-AVAILABLE-ON-ALLOCATION-P : NIL
+  ;; ARRAY-FREED-P                        : NIL
+  (with-array (xs int 1)
+    (with-cuda (0)
+      (is-error (setf (array-aref xs 0) 1)
+                simple-error
+                "Array not CUDA availabe on allocation with CUDA availabe.")))
+
+  ;; CUDA-AVAILABLE-P                     : NIL
+  ;; ARRAY-CUDA-AVAILABLE-ON-ALLOCATION-P : NIL
+  ;; ARRAY-FREED-P                        : NIL
+  (with-array (xs int 1)
+    (setf (array-aref xs 0) 1)
+    (is (array-aref xs 0)
+        1
+        "Array not CUDA availabe on allocation with not CUDA availabe."))
+
+  ;; CUDA-AVAILABLE-P                     : any
+  ;; ARRAY-CUDA-AVAILABLE-ON-ALLOCATION-P : any
+  ;; ARRAY-FREED-P                        : T
+  (let (xs)
+    (setf xs (alloc-array 'int 1))
+    (free-array xs)
+    (is-error (setf (array-aref xs 0) 1)
+              simple-error
+              "Array already freed."))
+
+  (with-array (xs int 1)
+    (is-error (array-aref xs :foo)
+              error
+              "Invalid index.")))
+
 (subtest "array-size"
 
   (with-array (xs int 100)

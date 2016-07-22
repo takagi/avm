@@ -307,19 +307,27 @@
        `(,@vals ,index)
        `(,v1 ,v2 ,v3 ,v4)
        `(progn
-          ;; Ensure array up to date for lisp.
-          (array-ensure-lisp-up-to-date ,getter)
-          ;; Set element of tuple array.
+          (when (cuda-available-p)
+            (check-array-cuda-available-on-allocation ,getter))
+          (when (array-cuda-available-on-allocation-p ,getter)
+            (check-cuda-available))
+          (when (cuda-available-p)
+            (array-ensure-lisp-up-to-date ,getter)
+            (array-set-lisp-dirty ,getter))
           (let ((tuple-array (array-tuple-array ,getter))
                 (base-type (array-base-type ,getter)))
             (setf (tuple-aref tuple-array base-type ,temp-index)
-                  (values ,v1 ,v2 ,v3 ,v4)))
-          ;; Set dirty flag for lisp to array.
-          (array-set-lisp-dirty ,getter))
-       ;; Return element of tuple array.
-       `(let ((tuple-array (array-tuple-array ,getter))
-              (base-type (array-base-type ,getter)))
-          (tuple-aref tuple-array base-type ,temp-index))))))
+                  (values ,v1 ,v2 ,v3 ,v4))))
+       `(progn
+          (when (cuda-available-p)
+            (check-array-cuda-available-on-allocation ,getter))
+          (when (array-cuda-available-on-allocation-p ,getter)
+            (check-cuda-available))
+          (when (cuda-available-p)
+            (array-ensure-lisp-up-to-date ,getter))
+          (let ((tuple-array (array-tuple-array ,getter))
+                (base-type (array-base-type ,getter)))
+            (tuple-aref tuple-array base-type ,temp-index)))))))
 
 (defun array-size (array)
   (check-array-not-freed array)
