@@ -330,7 +330,6 @@
             (tuple-aref tuple-array base-type ,temp-index)))))))
 
 (defun array-size (array)
-  (check-array-not-freed array)
   (let ((tuple-array (array-tuple-array array))
         (base-type (array-base-type array)))
     (tuple-array-dimensions tuple-array base-type)))
