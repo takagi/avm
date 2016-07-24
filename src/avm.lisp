@@ -34,7 +34,7 @@
            :*kernel-manager*
            ;; DEFKERNEL
            :defkernel
-           :*use-thread-p*
+           :*number-of-threads*
            ;; CUDA
            :with-cuda
            :*use-cuda-p*
