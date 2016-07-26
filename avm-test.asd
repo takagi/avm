@@ -35,7 +35,8 @@
                  (:module "api"
                   :serial t
                   :components
-                  ((:test-file "cuda"))))))
+                  ((:test-file "cuda")
+                   (:test-file "array"))))))
   :description "Test system for avm"
 
   :defsystem-depends-on (:prove-asdf)

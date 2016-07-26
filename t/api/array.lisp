@@ -462,14 +462,14 @@
   (with-cuda (0)
     (with-array (xs int 1)
       (array-ensure-lisp-up-to-date xs)
-      (ok (avm.api.array::array-lisp-up-to-date xs)
+      (ok (avm.api.array::array-lisp-up-to-date-p xs)
           "Lisp memory is up-to-date.")))
 
   (with-cuda (0)
     (with-array (xs int 1)
       (array-set-cuda-dirty xs)
       (array-ensure-lisp-up-to-date xs)
-      (ok (avm.api.array::array-lisp-up-to-date xs)
+      (ok (avm.api.array::array-lisp-up-to-date-p xs)
           "Lisp memory is not up-to-date, device memory is.")))
 
   (with-cuda (0)
@@ -479,8 +479,8 @@
 
   (with-cuda (0)
     (with-array (xs int 1)
-      (setf (avm.api.array::array-lisp-up-to-date xs) nil)
-      (setf (avm.api.array::array-cuda-up-to-date xs) nil)
+      (setf (avm.api.array::array-%lisp-up-to-date xs) nil)
+      (setf (avm.api.array::array-%cuda-up-to-date xs) nil)
       (is-error (array-ensure-lisp-up-to-date xs)
                 simple-error
                 "Lisp memory is up-to-date, device memory is not.")))
@@ -491,14 +491,14 @@
   (with-cuda (0)
     (with-array (xs int 1)
       (array-ensure-cuda-up-to-date xs)
-      (ok (avm.api.array::array-cuda-up-to-date xs)
+      (ok (avm.api.array::array-%cuda-up-to-date xs)
           "Device memory is up-to-date.")))
 
   (with-cuda (0)
     (with-array (xs int 1)
       (array-set-lisp-dirty xs)
       (array-ensure-cuda-up-to-date xs)
-      (ok (avm.api.array::array-cuda-up-to-date xs)
+      (ok (avm.api.array::array-%cuda-up-to-date xs)
           "Device memory is not up-to-date, Lisp memory is.")))
 
   (is-error (array-ensure-cuda-up-to-date :foo)
@@ -507,8 +507,8 @@
 
   (with-cuda (0)
     (with-array (xs int 1)
-      (setf (avm.api.array::array-lisp-up-to-date xs) nil)
-      (setf (avm.api.array::array-cuda-up-to-date xs) nil)
+      (setf (avm.api.array::array-%lisp-up-to-date xs) nil)
+      (setf (avm.api.array::array-%cuda-up-to-date xs) nil)
       (is-error (array-ensure-cuda-up-to-date xs)
                 simple-error
                 "Device memory is not up-to-date, Lisp memory is not.")))
