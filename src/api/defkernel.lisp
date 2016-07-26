@@ -11,7 +11,7 @@
         :avm.api.array
         :avm.api.kernel-manager)
   (:export :defkernel
-           :*use-thread-p*))
+           :*number-of-threads*))
 (in-package :avm.api.defkernel)
 
 
@@ -46,7 +46,7 @@
                          (avm.api.array::array-device-ptr ,arg)
                          ,arg))))
 
-(defvar *use-thread-p* nil)
+(defvar *number-of-threads* 1)
 
 (defun define-kernel-function-entry-form (name lisp-name cuda-name args)
   (let ((args1 (map-into (make-list (length args)) #'gensym))
@@ -67,7 +67,7 @@
                     (block-dim '(64 1 1)))
                 (,cuda-name n ,@args1 :grid-dim grid-dim
                                       :block-dim block-dim))))
-           (*use-thread-p*
+           ((< 1 *number-of-threads*)
             ;; Synchronize arrays appearing in arguments.
             (loop for ,arg in (list ,@args)
                when (array-p ,arg)
@@ -75,7 +75,7 @@
                   (array-set-lisp-dirty ,arg))
             ;; Launch kernel.
             (let (,@(array-lisp-bindings args1 args)
-                  (ranges (compute-ranges 2 n)))
+                  (ranges (compute-ranges *number-of-threads* n)))
               (let (threads)
                 (dolist (range ranges)
                   (destructuring-bind (begin end) range
