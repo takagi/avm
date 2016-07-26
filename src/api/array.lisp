@@ -7,6 +7,7 @@
 (defpackage avm.api.array
   (:use :cl
         :avm
+        :avm.api.cuda
         :avm.lang.data)
   (:export :avm-array
            :array-p
@@ -15,6 +16,7 @@
            :with-array
            :with-arrays
            :array-aref
+           :array-base-type
            :array-size
            :array-set-lisp-dirty
            :array-set-cuda-dirty
@@ -171,37 +173,102 @@
                       (:conc-name array-)
                       (:predicate array-p))
   (base-type :base-type :read-only t)
-  (tuple-array :tuple-array :read-only t)
-  (host-ptr :host-ptr)
-  (device-ptr :device-ptr)
-  (lisp-up-to-date :lisp-up-to-date)
-  (cuda-up-to-date :cuda-up-to-date))
+  (%tuple-array :%tuple-array)
+  (%host-ptr :%host-ptr)
+  (%device-ptr :%device-ptr)
+  (%lisp-up-to-date :%lisp-up-to-date)
+  (%cuda-up-to-date :%cuda-up-to-date))
+
+(defun array-cuda-available-on-allocation-p (array)
+  (and (array-%device-ptr array)
+       t))
+
+(defun array-freed-p (array)
+  (null (array-%tuple-array array)))
+
+(defun check-cuda-available ()
+  (unless (cuda-available-p)
+    (error "CUDA not available.")))
+
+(defun check-array-cuda-available-on-allocation (array)
+  (unless (array-cuda-available-on-allocation-p array)
+    (error "CUDA not available on allocation.")))
+
+(defun check-array-not-freed (array)
+  (unless (not (array-freed-p array))
+    (error "Array already freed.")))
+
+(defun array-tuple-array (array)
+  (check-array-not-freed array)
+  (array-%tuple-array array))
+
+(defun array-host-ptr (array)
+  (check-type array avm-array)
+  (check-cuda-available)
+  (check-array-cuda-available-on-allocation array)
+  (check-array-not-freed array)
+  (array-%host-ptr array))
+
+(defun array-device-ptr (array)
+  (check-type array avm-array)
+  (check-cuda-available)
+  (check-array-cuda-available-on-allocation array)
+  (check-array-not-freed array)
+  (array-%device-ptr array))
+
+(defun array-lisp-up-to-date-p (array)
+  (check-type array avm-array)
+  (check-cuda-available)
+  (check-array-cuda-available-on-allocation array)
+  (check-array-not-freed array)
+  (array-%lisp-up-to-date array))
+
+(defun array-cuda-up-to-date-p (array)
+  (check-type array avm-array)
+  (check-cuda-available)
+  (check-array-cuda-available-on-allocation array)
+  (check-array-not-freed array)
+  (array-%cuda-up-to-date array))
 
 (defun alloc-array (type dimensions)
   (let ((tuple-array (make-tuple-array type dimensions)))
-    (let* ((cuda-type (lisp->cuda-type type))
-           (host-ptr (and *use-cuda-p*
-                      (cl-cuda:alloc-host-memory cuda-type dimensions)))
-           (device-ptr (and *use-cuda-p*
-                        (cl-cuda:alloc-device-memory cuda-type dimensions))))
-      (%make-array :base-type type
-                   :tuple-array tuple-array
-                   :host-ptr host-ptr
-                   :device-ptr device-ptr
-                   :lisp-up-to-date t
-                   :cuda-up-to-date t))))
+    (if (cuda-available-p)
+        (let* ((cuda-type (lisp->cuda-type type))
+               (host-ptr (cl-cuda:alloc-host-memory cuda-type dimensions))
+               (device-ptr (cl-cuda:alloc-device-memory cuda-type dimensions)))
+          (%make-array :base-type type
+                       :%tuple-array tuple-array
+                       :%host-ptr host-ptr
+                       :%device-ptr device-ptr
+                       :%lisp-up-to-date t
+                       :%cuda-up-to-date t))
+        (%make-array :base-type type
+                     :%tuple-array tuple-array
+                     :%host-ptr nil
+                     :%device-ptr nil
+                     :%lisp-up-to-date :%lisp-up-to-date
+                     :%cuda-up-to-date :%cuda-up-to-date))))
 
 (defun free-array (array)
-  ;; Free device memory.
-  (when (and *use-cuda-p*
-             (array-device-ptr array))
-    (cl-cuda:free-device-memory (array-device-ptr array))
-    (setf (array-device-ptr array) nil))
-  ;; Free host memory.
-  (when (and *use-cuda-p*
-             (array-host-ptr array))
-    (cl-cuda:free-host-memory (array-host-ptr array))
-    (setf (array-host-ptr array) nil)))
+  ;; Do nothing if already freed.
+  (when (array-freed-p array)
+    (return-from free-array (values)))
+  ;; Check CUDA availability before freeing if CUDA available on allocation.
+  (when (array-cuda-available-on-allocation-p array)
+    (check-cuda-available))
+  ;; Delete reference to tuple array.
+  (setf (array-%tuple-array array) nil)
+  ;; Free device and host memory.
+  (when (array-cuda-available-on-allocation-p array)
+    ;; Free device memory.
+    (cl-cuda:free-device-memory (array-%device-ptr array))
+    (setf (array-%device-ptr array) 0)
+    (setf (array-%cuda-up-to-date array) :%cuda-up-to-date)
+    ;; Free host memory.
+    (cl-cuda:free-host-memory (array-%host-ptr array))
+    (setf (array-%host-ptr array) (cffi:null-pointer))
+    (setf (array-%lisp-up-to-date array) :%lisp-up-to-date))
+  (values))
 
 (defmacro with-array ((var type dimensions) &body body)
   `(let ((,var (alloc-array ',type ,dimensions)))
@@ -216,9 +283,12 @@
       `(progn ,@body)))
 
 (defun array-aref (array index)
-  ;; Ensure array up-to-date for lisp.
-  (array-ensure-lisp-up-to-date array)
-  ;; Return element of tuple array.
+  (when (cuda-available-p)
+    (check-array-cuda-available-on-allocation array))
+  (when (array-cuda-available-on-allocation-p array)
+    (check-cuda-available))
+  (when (cuda-available-p)
+    (array-ensure-lisp-up-to-date array))
   (let ((tuple-array (array-tuple-array array))
         (base-type (array-base-type array)))
     (tuple-aref tuple-array base-type index)))
@@ -237,19 +307,27 @@
        `(,@vals ,index)
        `(,v1 ,v2 ,v3 ,v4)
        `(progn
-          ;; Ensure array up to date for lisp.
-          (array-ensure-lisp-up-to-date ,getter)
-          ;; Set element of tuple array.
+          (when (cuda-available-p)
+            (check-array-cuda-available-on-allocation ,getter))
+          (when (array-cuda-available-on-allocation-p ,getter)
+            (check-cuda-available))
+          (when (cuda-available-p)
+            (array-ensure-lisp-up-to-date ,getter)
+            (array-set-lisp-dirty ,getter))
           (let ((tuple-array (array-tuple-array ,getter))
                 (base-type (array-base-type ,getter)))
             (setf (tuple-aref tuple-array base-type ,temp-index)
-                  (values ,v1 ,v2 ,v3 ,v4)))
-          ;; Set dirty flag for lisp to array.
-          (array-set-lisp-dirty ,getter))
-       ;; Return element of tuple array.
-       `(let ((tuple-array (array-tuple-array ,getter))
-              (base-type (array-base-type ,getter)))
-          (tuple-aref tuple-array base-type ,temp-index))))))
+                  (values ,v1 ,v2 ,v3 ,v4))))
+       `(progn
+          (when (cuda-available-p)
+            (check-array-cuda-available-on-allocation ,getter))
+          (when (array-cuda-available-on-allocation-p ,getter)
+            (check-cuda-available))
+          (when (cuda-available-p)
+            (array-ensure-lisp-up-to-date ,getter))
+          (let ((tuple-array (array-tuple-array ,getter))
+                (base-type (array-base-type ,getter)))
+            (tuple-aref tuple-array base-type ,temp-index)))))))
 
 (defun array-size (array)
   (let ((tuple-array (array-tuple-array array))

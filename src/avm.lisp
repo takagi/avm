@@ -47,6 +47,7 @@
            :with-array
            :with-arrays
            :array-aref
+           :array-base-type
            :array-size
            ))
 (in-package :avm)

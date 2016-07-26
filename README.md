@@ -497,6 +497,18 @@ When CUDA state is "Available", AVM is ready to use CUDA with initializing it an
 
 When CUDA state is "Used", AVM is ready to use CUDA as well as when CUDA state is "Available" and kernel functions are actually executed on CUDA. When AVM has this state is same as when CUDA state is "Available" except that `*use-cuda-p*` special variable is set to not `nil`, which is the default value of that in `with-cuda` context.
 
+### Array states
+
+AVM's arrays have the following state variables:
+
+- CUDA availability
+- CUDA availability on allocation
+- Freed or not
+
+CUDA availability is if CUDA is available or not when array operations are called. CUDA availability on allocation is if CUDA was available or not when arrays are `alloc-array`ed. Free or not is if arrays are already `free-array`ed or not.
+
+How array operations work is dependent of these state variables. For detail, see each array operation's API description.
+
 ### Multi-threding state
 
 To be described.
