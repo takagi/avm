@@ -136,10 +136,18 @@ Frees the given `array`. Does nothing if `array` is already freed.
 
 ### [Macro] with-array, with-arrays
 
-    WITH-ARRAY
-    WITH-ARRAYS
+    WITH-ARRAY (var type size) body
+    WITH-ARRAYS ({(var type size)}*) body
 
-To be described.
+Binds `var` to an AVM array allocated using `alloc-array` applied to the given `type` and `size` during `body`. The array is freed using `free-alloc` when `with-array` exists. `with-arrays` is a plural form of `with-array`.
+
+**Example:**
+
+```common-lisp
+(with-cuda (0)
+  (with-array (xs int 100)
+    (do-something-with xs)))
+```
 
 ### [Function] array-size
 
@@ -157,20 +165,67 @@ Returns the size of given array.
 
 ### [Accessor] array-aref
 
-    ARRAY-AREF
-    SETF ARRAY-AREF
+    ARRAY-AREF array index => element
+    SETF (ARRAY-AREF array index) new-element
 
-To be described.
+Accesses `array`'s element specified by `index`. When `array`'s base type is of vector types, `array-aref` and `setf array-aref` handles values whose size is its base type's size. For example, `array-aref` and `setf array-aref` for an array of base type `float4` handles values of type `(values single-float single-float single-float single-float)`.
+
+If CUDA is available, data on device memory is lazily synchronized before accessing elements of `array`, it is only if data on device memory is updated so data on host memory is out-of-date.
+
+**Example:**
+
+```common-lisp
+(with-array (xs int2 100)
+  (initialize-with-ones xs)
+  (array-aref xs 0))
+=> (values 1 1)
+
+(with-array (xs int2 100)
+  (setf (array-aref xs 0) (values 1 1))
+  (array-aref xs 0))
+=> (values 1 1)
+
+(with-cuda (0)
+  (with-array (xs int2 100)
+    (fill-ones xs)                      ; Ones filled on GPU.
+    (array-aref xs 0)))                 ; Lazily synchronized to host.
+=> (values 1 1)
+```
 
 ### [Macro] with-cuda
 
-    WITH-CUDA (dev-id) &body body
+    WITH-CUDA (dev-id) body
 
-To be described.
+Initializes CUDA and keeps a CUDA context during `body`. `dev-id` is passed to `cl-cuda:get-cuda-device` function to get device handler. If `dev-id` is `nil`, AVM uses Lisp backend so `WITH-CUDA` has no effect. In other words, you can switch if you use CUDA or not by `dev-id`.
+
+**Example:**
+
+```common-lisp
+(defkernel do-something (xs)
+  ...)
+
+(with-cuda (0)
+  (with-array (xs int 100)
+    (do-something xs)))                 ; Processed on GPU.
+
+(with-cuda (nil)
+  (with-array (xs int 100)
+    (do-something xs)))                 ; Processed on CPU.
+```
 
 ### [Special Variable] \*use-cuda-p\*
 
-To be described.
+In `with-cuda` macro's context, specifies if CUDA is used or not. The default value in `with-cuda` context is `t`. For detail, see [CUDA state](#cuda-state).
+
+**Example:**
+
+```common-lisp
+(with-cuda (0)
+  (with-array (xs int 100)
+    (do-something xs)                   ; Processed on GPU.
+    (let ((*use-cuda-p* nil))
+      (do-something xs))))              ; Processed on CPU.
+```
 
 ### [Function] synchronize
 
@@ -436,7 +491,14 @@ Accesses the `array` element specified by the `index`. The type of `array` is an
 
 ### [Built-in Variable] i, n
 
-To be described.
+`i` has the index of current AVM thread, `n` has the number of all AVM threads in a calling AVM kernel function. The both have type of `int`. You may use them in any kernel functions including ones called by another.
+
+**Examples:**
+
+```common-lisp
+(defkernel fill-zeros (xs)
+  (set (aref xs i) 0))
+```
 
 ### [Built-in Function] +, -, *, /, mod
 
@@ -496,10 +558,6 @@ The initial state is "Not Available". When CUDA state is "Not Available", AVM do
 When CUDA state is "Available", AVM is ready to use CUDA with initializing it and creating CUDA context as well as allocating device memory on `alloc-array`ing, though kernel functions are actually not executed on CUDA in this state. When AVM has this state is that CUDA is available on your machine within `with-cuda` context with its `dev-id` parameter an integer that indicates which GPU you use and `*use-cuda-p*` special variable is set to `nil`.
 
 When CUDA state is "Used", AVM is ready to use CUDA as well as when CUDA state is "Available" and kernel functions are actually executed on CUDA. When AVM has this state is same as when CUDA state is "Available" except that `*use-cuda-p*` special variable is set to not `nil`, which is the default value of that in `with-cuda` context.
-
-### Multi-threding state
-
-To be described.
 
 ## Author
 
