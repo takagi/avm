@@ -404,8 +404,8 @@
         (size (array-size array)))
     (cl-cuda::memcpy-host-to-device device-ptr host-ptr cuda-type size))
   ;; Update array up-to-date state.
-  (setf (array-lisp-up-to-date array) t)
-  (setf (array-cuda-up-to-date array) t))
+  (setf (array-%lisp-up-to-date array) t)
+  (setf (array-%cuda-up-to-date array) t))
 
 (defun float3-values (x)
   (values (cl-cuda:float3-x x)
@@ -481,25 +481,25 @@
                 (cl-cuda:host-memory-aref host-ptr 'cl-cuda:double4 i)))))
       ))
   ;; Update array up-to-date state.
-  (setf (array-lisp-up-to-date array) t)
-  (setf (array-cuda-up-to-date array) t))
+  (setf (array-%lisp-up-to-date array) t)
+  (setf (array-%cuda-up-to-date array) t))
 
 (defun array-set-lisp-dirty (array)
-  (unless (array-lisp-up-to-date array)
+  (unless (array-lisp-up-to-date-p array)
     (error "Ensure array up-to-date for lisp first."))
-  (setf (array-cuda-up-to-date array) nil))
+  (setf (array-%cuda-up-to-date array) nil))
 
 (defun array-set-cuda-dirty (array)
-  (unless (array-cuda-up-to-date array)
+  (unless (array-cuda-up-to-date-p array)
     (error "Ensure array up-to-date for CUDA first."))
-  (setf (array-lisp-up-to-date array) nil))
+  (setf (array-%lisp-up-to-date array) nil))
 
 (defun array-ensure-lisp-up-to-date (array)
-  (when (not (array-lisp-up-to-date array))
-    (assert (array-cuda-up-to-date array))
+  (when (not (array-lisp-up-to-date-p array))
+    (assert (array-cuda-up-to-date-p array))
     (sync-array array :cuda :lisp)))
 
 (defun array-ensure-cuda-up-to-date (array)
-  (when (not (array-cuda-up-to-date array))
-    (assert (array-lisp-up-to-date array))
+  (when (not (array-cuda-up-to-date-p array))
+    (assert (array-lisp-up-to-date-p array))
     (sync-array array :lisp :cuda)))
