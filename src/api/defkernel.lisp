@@ -7,6 +7,7 @@
 (defpackage avm.api.defkernel
   (:use :cl
         :avm
+        :avm.api.cuda
         :avm.api.array
         :avm.api.kernel-manager)
   (:export :defkernel
@@ -54,7 +55,7 @@
        (let ((n (or size (compute-dimension (list ,@args)))))
          (declare (type fixnum n))
          (cond
-           (*use-cuda-p*
+           ((cuda-state-used-p)
             ;; Synchronize arrays appearing in arguments.
             (loop for ,arg in (list ,@args)
                when (array-p ,arg)
