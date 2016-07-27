@@ -204,4 +204,5 @@
 
 (declaim (inline rsqrt))
 (defun rsqrt (x)
+  (declare (type (float 0.0) x))
   (/ (sqrt x)))
