@@ -69,10 +69,11 @@
                                       :block-dim block-dim))))
            ((< 1 *number-of-threads*)
             ;; Synchronize arrays appearing in arguments.
-            (loop for ,arg in (list ,@args)
-               when (array-p ,arg)
-               do (array-ensure-lisp-up-to-date ,arg)
-                  (array-set-lisp-dirty ,arg))
+            (when (cuda-available-p)
+              (loop for ,arg in (list ,@args)
+                 when (array-p ,arg)
+                 do (array-ensure-lisp-up-to-date ,arg)
+                    (array-set-lisp-dirty ,arg)))
             ;; Launch kernel.
             (let (,@(array-lisp-bindings args1 args)
                   (ranges (compute-ranges *number-of-threads* n)))
@@ -88,10 +89,11 @@
                    do (bt:join-thread thread)))))
            (t
             ;; Synchronize arrays appearing in arguments.
-            (loop for ,arg in (list ,@args)
-               when (array-p ,arg)
-               do (array-ensure-lisp-up-to-date ,arg)
-                  (array-set-lisp-dirty ,arg))
+            (when (cuda-available-p)
+              (loop for ,arg in (list ,@args)
+                 when (array-p ,arg)
+                 do (array-ensure-lisp-up-to-date ,arg)
+                    (array-set-lisp-dirty ,arg)))
             ;; Launch kernel.
             (let ,(array-lisp-bindings args1 args)
               (dotimes (i n)
