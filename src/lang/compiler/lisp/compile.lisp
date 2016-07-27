@@ -52,18 +52,10 @@
          (fenv1 (if rec-p
                     (extend-funenv name name1 ftype args fenv)
                     fenv)))
-    (let ((args1 (loop for arg in args
-                    append (query-varenv arg venv1)))
-          (types1 (loop for type in (function-arg-types ftype)
-                     collect (compile-type type)))
+    (let ((args1 (compile-arguments args venv1))
+          (type-decls (compile-type-declarations ftype args venv1))
           (body1 (compile-form body venv1 tenv1 aenv fenv1)))
-      (values name1 args1
-              `((declare (optimize (speed 3) (safety 0)))
-                (declare (ignorable ,@args1))
-                ,@(loop for arg1 in args1
-                        for type1 in types1
-                     collect `(declare (type ,type1 ,arg1)))
-                ,body1)))))
+      (values name1 args1 `(,@type-decls ,body1)))))
 
 (defun compile-name (name entry-p)
   (if entry-p
@@ -71,6 +63,32 @@
             (symbol-package (symbol-package name)))
         (intern (format nil "%LISP-~A" symbol-name) symbol-package))
       (genname name)))
+
+(defun compile-arguments (args venv)
+  (loop for arg in args
+     append (query-varenv arg venv)))
+
+(defun compile-type-declarations (ftype args venv)
+  `((declare (optimize (speed 3) (safety 0)))
+    ,@(loop for arg in args
+            for vars = (query-varenv arg venv)
+         collect
+           `(declare (ignorable ,@vars)))
+    ,@(loop for arg in args
+            for vars = (query-varenv arg venv)
+            for type in (function-arg-types ftype)
+         collect
+           (cond
+             ;; Scalar type and array type.
+             ((or (scalar-type-p type)
+                  (array-type-p type))
+              (let ((type1 (compile-type type)))
+                `(declare (type ,type1 ,@vars))))
+             ;; Vector type.
+             ((vector-type-p type)
+              (let ((type1 (compile-type (vector-type-base-type type))))
+                `(declare (type ,type1 ,@vars))))
+             (t (error "Must not be reached."))))))
 
 (defun compile-form (form venv tenv aenv fenv)
   (cond

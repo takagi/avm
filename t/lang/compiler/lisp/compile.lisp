@@ -24,12 +24,37 @@
          (,aenv (empty-appenv))
          (,fenv (empty-funenv))
          (,venv (empty-varenv))
-         (*genvar-counter* 0))
+         (*genvar-counter* 0)
+         (*genname-counter* 0))
      ,@body))
 
 (setf (fdefinition 'compile-form)
       #'avm.lang.compiler.lisp.compile::compile-form)
 
+
+(subtest "compile-function"
+
+  (with-env (tenv aenv fenv venv)
+    (let ((aenv1 (extend-appenv '#1=(+ x y)
+                                '((:vector int 3) (:vector int 3)
+                                  (:vector int 3))
+                                aenv)))
+      (is-values (compile-function 'foo
+                                   '((:vector int 3) (:vector int 3) int)
+                                   '(x y)
+                                   '#1#    ; (+ x y)
+                                   venv tenv aenv1 fenv)
+                 '(foo0 (x0 x1 x2 y3 y4 y5)
+                   ((declare (optimize (speed 3) (safety 0)))
+                    (declare (ignorable x0 x1 x2))
+                    (declare (ignorable y3 y4 y5))
+                    (declare (type fixnum x0 x1 x2))
+                    (declare (type fixnum y3 y4 y5))
+                    (the (values fixnum fixnum fixnum)
+                     (avm.lang.data:int3-add*
+                      (avm.lang.data:int3-values* x0 x1 x2)
+                      (avm.lang.data:int3-values* y3 y4 y5)))))
+                 "Vector type arguments."))))
 
 (subtest "LET"
 
