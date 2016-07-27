@@ -159,11 +159,13 @@
                  (array-type-p type))
              (let ((type1 (compile-type type)))
                `(let ((,@vars ,form1))
+                  (declare (ignorable ,@vars))
                   (declare (type ,type1 ,@vars))
                   ,(%compile-let bindings1 body venv aenv fenv venv2))))
             ((vector-type-p type)
              (let ((type1 (compile-type (vector-type-base-type type))))
                `(multiple-value-bind ,vars ,form1
+                  (declare (ignorable ,@vars))
                   (declare (type ,type1 ,@vars))
                   ,(%compile-let bindings1 body venv aenv fenv venv2))))
             (t (error "Must not be reached.")))))
