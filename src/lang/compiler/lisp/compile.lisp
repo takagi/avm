@@ -257,10 +257,11 @@
       (unless (= argc (length operands))
         (error "Invalid number of arguments: ~S" (length operands))))
     (let ((args (funenv-arguments operator fenv)))
-      (let ((form1 (%compile-user-apply operator operands args args
-                                        venv tenv aenv fenv))
-            (return-type (funenv-return-type operator fenv)))
-        (values form1 return-type)))))
+      (let* ((form1 (%compile-user-apply operator operands args args
+                                         venv tenv aenv fenv))
+             (return-type (funenv-return-type operator fenv))
+             (return-type1 (compile-type return-type)))
+        (values `(the ,return-type1 ,form1) return-type)))))
 
 (defun %compile-user-apply (operator operands args0 args venv tenv aenv fenv)
   (if operands
