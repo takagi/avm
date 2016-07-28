@@ -35,33 +35,34 @@
 (defun compile-function (name ftype args body aenv fenv funcs
                          &key entry-p rec-p)
   (assert (not (and entry-p (not rec-p))))
-  (let* ((name1 (compile-name name entry-p nil))
+  (let* ((cuda-name (compile-name name entry-p nil))
          (fenv1 (if rec-p
-                    (extend-funenv name name1 ftype args fenv)
+                    (extend-funenv name cuda-name ftype args fenv)
                     fenv)))
     (multiple-value-bind (body1 funcs1)
         (compile-form body :tail aenv fenv1 funcs)
-      (let ((func (%compile-function name1 ftype args body1)))
+      (let ((func (%compile-function cuda-name ftype args body1)))
         (if (not entry-p)
-            (values name1 (cons func funcs1))
+            (values cuda-name (cons func funcs1))
             (multiple-value-bind (caller-name caller-func)
-                (%compile-caller-function name ftype args)
-              (values caller-name (cons caller-func
-                                   (cons func funcs1)))))))))
+                (%compile-caller-function name cuda-name ftype args)
+              (values caller-name
+                      cuda-name
+                      (cons caller-func
+                            (cons func funcs1)))))))))
 
-(defun %compile-function (name1 ftype args body)
+(defun %compile-function (cuda-name ftype args body)
   (let ((args1 (loop for arg in args
                      for type in (function-arg-types ftype)
                      for type1 = (compile-type type)
                   collect (list arg type1)))
         (return-type (compile-type
                       (function-return-type ftype))))
-    `(cl-cuda:defkernel ,name1 (,return-type ,args1)
+    `(cl-cuda:defkernel ,cuda-name (,return-type ,args1)
        ,body)))
 
-(defun %compile-caller-function (name ftype args)
-  (let ((name1 (compile-name name t nil))
-        (caller-name (compile-name name t t))
+(defun %compile-caller-function (name cuda-name ftype args)
+  (let ((caller-name (compile-name name t t))
         (args1 (loop for arg in args
                      for type in (function-arg-types ftype)
                      for type1 = (compile-type type)
@@ -70,7 +71,7 @@
                    (let ((i (+ (* cl-cuda:block-dim-x cl-cuda:block-idx-x)
                                cl-cuda:thread-idx-x)))
                      (when (< i n)
-                       (,name1 ,@args))))))
+                       (,cuda-name ,@args))))))
       (values caller-name func))))
 
 (defun compile-name (name entry-p caller-p)

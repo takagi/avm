@@ -40,13 +40,14 @@
       ;; Compile kernel function.
       (multiple-value-bind (lisp-name ftype lisp-form)
           (compile-kernel-function :lisp name args1 body kernel)
-        (multiple-value-bind (cuda-name _ cuda-form)
+        (multiple-value-bind (caller-name cuda-name _ cuda-form)
             (compile-kernel-function :cuda name args1 body kernel)
           (declare (ignore _))
           ;; Define kernel function to kernel.
-          (kernel-define-function kernel name lisp-name ftype args1 body)
+          (kernel-define-function kernel name lisp-name cuda-name
+                                  ftype args1 body)
           ;; Return compiled form.
-          (values lisp-name lisp-form cuda-name cuda-form
+          (values lisp-name lisp-form caller-name cuda-form
                   (include-vector-type-p ftype)))))))
 
 (defun include-vector-type-p (type)
