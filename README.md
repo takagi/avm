@@ -42,7 +42,7 @@ AVM's kernel functions run **almost as fast as equivalent C/C++ codes** with SBC
 
 Additionaly, AVM provides Nvidia CUDA support so we can enormously accelerate computing kernel functions with GPUs.
 
-![Mandelbrot](https://docs.google.com/spreadsheets/d/1_-_ucZTxqWXt1lqLOBoNQnMF5Us6ft3UMH9GT2wxWTM/pubchart?oid=1387493371&format=image)
+![Mandelbrot](https://docs.google.com/spreadsheets/d/1_-_ucZTxqWXt1lqLOBoNQnMF5Us6ft3UMH9GT2wxWTM/pubchart?oid=1138015283&format=image)
 
 These benchmarks are measured on the following environment:
 
