@@ -85,7 +85,10 @@
           (multiple-value-bind (name1 args1 body2)
               (compile-function name ftype1 args body1 venv aenv2 fenv
                                 :entry-p t :rec-p t)
-            (values name1 ftype1 `(defun ,name1 ,args1 ,@body2))))))))
+            (values name1 ftype1
+                    `(progn
+                       (declaim (inline ,name1))
+                       (defun ,name1 ,args1 ,@body2)))))))))
 
 (defmethod compile-kernel-global (kernel name (engine (eql :lisp)))
   nil)
