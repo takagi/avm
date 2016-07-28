@@ -36,13 +36,13 @@ Efficient and expressive arrayed vector math library with multi-threading and CU
 
 ##Benchmark
 
-AVM's kernel functions run **almost as fast as equivalent C/C++ codes** with SBCL Common Lisp compiler. And we can easily make them run in parallel with just specifying the number of threads we use. Here shows a benchmark of computing 2048x2048 Mandelbrot set.
+AVM's kernel functions run **almost as fast as equivalent C/C++ codes** with SBCL Common Lisp compiler. And we can easily make them run in parallel with just specifying the number of threads we use. Here shows a benchmark of computing 2048x2048 Mandelbrot set and 32768 bodies N-body simulation.
 
-![Mandelbrot](https://docs.google.com/spreadsheets/d/1_-_ucZTxqWXt1lqLOBoNQnMF5Us6ft3UMH9GT2wxWTM/pubchart?oid=1138015283&format=image)
+![Benchmark](https://docs.google.com/spreadsheets/d/1_-_ucZTxqWXt1lqLOBoNQnMF5Us6ft3UMH9GT2wxWTM/pubchart?oid=414899701&format=image)
 
-Additionaly, AVM provides Nvidia CUDA support so we can enormously accelerate computing kernel functions with GPUs.
+Additionally, AVM provides Nvidia CUDA support so we can enormaously accelerate computing kernel functions with GPUs.
 
-![Mandelbrot](https://docs.google.com/spreadsheets/d/1_-_ucZTxqWXt1lqLOBoNQnMF5Us6ft3UMH9GT2wxWTM/pubchart?oid=1138015283&format=image)
+![Benchmark with CUDA](https://docs.google.com/spreadsheets/d/1_-_ucZTxqWXt1lqLOBoNQnMF5Us6ft3UMH9GT2wxWTM/pubchart?oid=1016247054&format=image)
 
 These benchmarks are measured on the following environment:
 
