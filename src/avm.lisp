@@ -28,7 +28,7 @@
            :double4-x :double4-y :double4-z :double4-w           
            ;; Arithmetic
            :*. :.* :/.
-           ;; Built-in functions
+           ;; Mathematical functions
            :rsqrt
            ;; Built-in variables
            :i :n
