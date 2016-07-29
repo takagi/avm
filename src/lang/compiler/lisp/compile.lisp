@@ -100,7 +100,7 @@
     ((let-p form) (compile-let form venv tenv aenv fenv))
     ((flet-p form) (compile-flet form venv tenv aenv fenv))
     ((labels-p form) (compile-labels form venv tenv aenv fenv))
-    ((set-p form) (compile-set form venv tenv aenv fenv))
+    ((setf-p form) (compile-setf form venv tenv aenv fenv))
     ((apply-p form) (compile-apply form venv tenv aenv fenv))
     (t (error "The value ~S is an invalid form." form))))
 
@@ -222,9 +222,9 @@
         (body (labels-body form)))
     (%compile-flet 'labels bindings body t venv tenv aenv fenv fenv)))
 
-(defun compile-set (form venv tenv aenv fenv)
-  (let ((place (set-place form))
-        (value (set-value form)))
+(defun compile-setf (form venv tenv aenv fenv)
+  (let ((place (setf-place form))
+        (value (setf-value form)))
     (multiple-value-bind (place1 type) (compile-form place venv tenv aenv fenv)
       (multiple-value-bind (value1 _) (compile-form value venv tenv aenv fenv)
         (declare (ignore _))

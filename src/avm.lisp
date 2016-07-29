@@ -14,8 +14,6 @@
            :int-array :int2-array :int3-array :int4-array
            :float-array :float2-array :float3-array :float4-array
            :double-array :double2-array :double3-array :double4-array
-           ;; Syntax
-           :set
            ;; Vector type accessors
            :int2-x :int2-y
            :int3-x :int3-y :int3-z

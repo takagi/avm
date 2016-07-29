@@ -36,7 +36,7 @@
     ((let-p form) (k-normal-let form))
     ((flet-p form) (k-normal-flet form))
     ((labels-p form) (k-normal-labels form))
-    ((set-p form) (k-normal-set form))
+    ((setf-p form) (k-normal-setf form))
     ((apply-p form) (k-normal-apply form))
     (t (error "The value ~S is an invalid form." form))))
 
@@ -102,17 +102,17 @@
         (body (labels-body form)))
     (%k-normal-flet 'labels bindings body)))
 
-(defun k-normal-set (form)
-  (let ((place (set-place form))
-        (value (set-value form)))
+(defun k-normal-setf (form)
+  (let ((place (setf-place form))
+        (value (setf-value form)))
     (multiple-value-bind (fn place1) (k-normal-place place)
       (if (or (literal-p value)
               (reference-p value))
-          (funcall fn `(set ,place1 ,value))
+          (funcall fn `(setf ,place1 ,value))
           (let ((tmp (gentmp))
                 (value1 (k-normal value)))
             `(let ((,tmp ,value1))
-               ,(funcall fn `(set ,place1 ,tmp))))))))
+               ,(funcall fn `(setf ,place1 ,tmp))))))))
 
 (defun k-normal-place (place)
   (cond

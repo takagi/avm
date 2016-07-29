@@ -92,7 +92,7 @@
     ((let-p form) (compile-let form dest aenv fenv funcs))
     ((flet-p form) (compile-flet form dest aenv fenv funcs))
     ((labels-p form) (compile-labels form dest aenv fenv funcs))
-    ((set-p form) (compile-set form dest aenv fenv funcs))
+    ((setf-p form) (compile-setf form dest aenv fenv funcs))
     ((apply-p form) (compile-apply form dest aenv fenv funcs))
     (t (error "The value ~S is an invalid form." form))))
 
@@ -186,10 +186,10 @@
         (body (labels-body form)))
     (%compile-flet bindings body dest t aenv fenv fenv funcs)))
 
-(defun compile-set (form dest aenv fenv funcs)
+(defun compile-setf (form dest aenv fenv funcs)
   ;; Assuming K-normalized.
-  (let ((place (set-place form))
-        (value (set-value form)))
+  (let ((place (setf-place form))
+        (value (setf-value form)))
       (multiple-value-bind (value1 funcs1)
           (compile-form value dest aenv fenv funcs)
         (values `(progn

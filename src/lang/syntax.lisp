@@ -41,10 +41,10 @@
            :labels-p
            :labels-bindings
            :labels-body
-           ;; SET
-           :set-p
-           :set-place
-           :set-value
+           ;; SETF
+           :setf-p
+           :setf-place
+           :setf-value
            ;; Place
            :place-p
            :reference-place-p
@@ -251,24 +251,24 @@
 
 
 ;;
-;; SET
+;; SETF
 
-(defun set-p (object)
+(defun setf-p (object)
   (cl-pattern:match object
-    (('set . _) t)
+    (('setf . _) t)
     (_ nil)))
 
-(defun set-place (form)
+(defun setf-place (form)
   (cl-pattern:match form
-    (('set place _)
+    (('setf place _)
      (unless (place-p place)
        (error "The form ~S is malformed." form))
      place)
     (_ (error "The form ~S is malformed." form))))
 
-(defun set-value (form)
+(defun setf-value (form)
   (cl-pattern:match form
-    (('set _ value) value)
+    (('setf _ value) value)
     (_ (error "The form ~S is malformed." form))))
 
 

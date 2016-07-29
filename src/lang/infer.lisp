@@ -51,7 +51,7 @@
     ((let-p form) (infer-let form tenv aenv uenv fenv))
     ((flet-p form) (infer-flet form tenv aenv uenv fenv))
     ((labels-p form) (infer-labels form tenv aenv uenv fenv))
-    ((set-p form) (infer-set form tenv aenv uenv fenv))
+    ((setf-p form) (infer-setf form tenv aenv uenv fenv))
     ((apply-p form) (infer-apply form tenv aenv uenv fenv))
     (t (error "The value ~S is an invalid form." form))))
 
@@ -134,9 +134,9 @@
         (body (labels-body form)))
     (%infer-flet bindings body t tenv aenv uenv fenv fenv)))
 
-(defun infer-set (form tenv aenv uenv fenv)
-  (let ((place (set-place form))
-        (value (set-value form)))
+(defun infer-setf (form tenv aenv uenv fenv)
+  (let ((place (setf-place form))
+        (value (setf-value form)))
     (multiple-value-bind (type1 aenv1 uenv1)
         (infer-form place tenv aenv uenv fenv)
       (multiple-value-bind (type2 aenv2 uenv2)
