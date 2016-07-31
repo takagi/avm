@@ -78,6 +78,18 @@ Defines a kernel function. A defined kernel function is callable as if it is an 
   (fill-one xs))
 ```
 
+### [Special Variable] \*compile-on-runtime\*
+
+Delays AVM kernel function compilation to runtime if not `nil`. Otherwise, AVM kernel functions are compiled at compile time. Delaying compilation to runtime is useful, at least on SBCL, for debuging AVM kernel definitions because it makes CL debugger show backtrace when they have some errors.
+
+**Example:**
+
+```common-lisp
+(setf *compile-on-runtime* t)
+(defkernel some-error ()
+  (+ 1 1.0))                            ; AVM compile error showing backtrace
+```
+
 ### [Macro] defkernel-macro
 
     DEFKERNEL-MACRO

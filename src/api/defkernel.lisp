@@ -11,7 +11,8 @@
         :avm.api.array
         :avm.api.kernel-manager)
   (:export :defkernel
-           :*number-of-threads*))
+           :*number-of-threads*
+           :*compile-on-runtime*))
 (in-package :avm.api.defkernel)
 
 
@@ -48,7 +49,7 @@
 
 (defvar *number-of-threads* 1)
 
-(defun define-kernel-function-entry-form (name lisp-name cuda-name args)
+(defun defun-entry-function-form (name lisp-name cuda-name args)
   (let ((args1 (map-into (make-list (length args)) #'gensym))
         (arg (gensym)))
     `(defun ,name (,@args &key size)
@@ -100,18 +101,26 @@
                 (declare (type fixnum i))
                 (,lisp-name i n ,@args1)))))))))
 
-(defun define-kernel-function (manager name args body)
+(defun defkernel-form (manager name args body)
   (multiple-value-bind (lisp-name lisp-form cuda-name cuda-form
                         include-vector-type-p)
       (kernel-manager-define-function manager name args body)
-    ;; Define Lisp kernel.
-    (eval lisp-form)
-    ;; Define CUDA kernel.
-    (eval cuda-form)
-    ;; Define entry point.
-    (when (not include-vector-type-p)
-      (eval
-       (define-kernel-function-entry-form name lisp-name cuda-name args)))))
+    (let ((entry-function-form
+           (defun-entry-function-form name lisp-name cuda-name args)))
+      `(progn
+         ;; Define Lisp kernel.
+         ,lisp-form
+         ;; Define CUDA kernel.
+         ,cuda-form
+         ;; Define entry function.
+         ,@(when (not include-vector-type-p)
+             (list entry-function-form))))))
+
+(defvar *compile-on-runtime* nil)
 
 (defmacro defkernel (name args body)
-  `(define-kernel-function *kernel-manager* ',name ',args ',body))
+  (if (not *compile-on-runtime*)
+      (defkernel-form *kernel-manager* name args body)
+      `(eval-when (:compile-toplevel :load-toplevel :execute)
+         (eval
+          (defkernel-form *kernel-manager* ',name ',args ',body)))))

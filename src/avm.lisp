@@ -35,6 +35,7 @@
            ;; DEFKERNEL
            :defkernel
            :*number-of-threads*
+           :*compile-on-runtime*
            ;; CUDA
            :with-cuda
            :*use-cuda-p*
