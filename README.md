@@ -454,7 +454,7 @@ To be described.
 
     RSQRT x => result
 
-These built-in functions provide mathematical operations.
+These built-in functions provide mathematical functions.
 
 ### [Built-in Macro] ...
 
