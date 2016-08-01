@@ -26,8 +26,8 @@
            :double2-x :double2-y
            :double3-x :double3-y :double3-z
            :double4-x :double4-y :double4-z :double4-w           
-           ;; Arithmetic
-           :*. :.* :/.
+           ;; Vector algebra
+           :*. :.* :/. :dot
            ;; Mathematical functions
            :rsqrt
            ;; Built-in variables

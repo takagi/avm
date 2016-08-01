@@ -454,7 +454,7 @@ To be described.
 
 To be described.
 
-### [Built-in Function] \*., .\*, /.
+### [Built-in Function] \*., .\*, /., dot
 
 To be described.
 
