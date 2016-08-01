@@ -28,6 +28,8 @@
            :double4-x :double4-y :double4-z :double4-w           
            ;; Arithmetic
            :*. :.* :/.
+           ;; Mathematical functions
+           :rsqrt
            ;; Built-in variables
            :i :n
            ;; Special variables

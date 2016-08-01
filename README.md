@@ -462,6 +462,12 @@ To be described.
 
 To be described.
 
+### [Built-in Function] rsqrt
+
+    RSQRT x => result
+
+These built-in functions provide mathematical functions.
+
 ### [Built-in Macro] ...
 
 To be described.

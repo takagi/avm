@@ -171,6 +171,13 @@
            (((:array (:vector double 3)) int (:vector double 3)) double3-aref*)
            (((:array (:vector double 4)) int (:vector double 4)) double4-aref*)
            ))
+    (mod (int int int) (((int int int) mod)))
+    (coerce (a b) (((int float) int->float)
+                   ((int double) int->double)
+                   ((float double) float->double)))
+    ;; Mathematical functions.
+    (rsqrt (a a) (((float float) rsqrt)
+                  ((double double) rsqrt)))
     (norm ((:vector a _) a)
           (;(((:vector int 2) int) int2-norm*)
            ;(((:vector int 3) int) int3-norm*)
@@ -181,10 +188,6 @@
            (((:vector double 2) double) double2-norm*)
            (((:vector double 3) double) double3-norm*)
            (((:vector double 4) double) double4-norm*)))
-    (mod (int int int) (((int int int) mod)))
-    (coerce (a b) (((int float) int->float)
-                   ((int double) int->double)
-                   ((float double) float->double)))
     ))
 
 (declaim (inline int->float))
@@ -198,3 +201,8 @@
 (declaim (inline float->double))
 (defun float->double (x)
   (float x 1.0d0))
+
+(declaim (inline rsqrt))
+(defun rsqrt (x)
+  (declare (type (float 0.0) x))
+  (/ (sqrt x)))
