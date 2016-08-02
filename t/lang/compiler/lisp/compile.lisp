@@ -56,39 +56,49 @@
                       (avm.lang.data:int3-values* y3 y4 y5)))))
                  "Vector type arguments."))))
 
-(subtest "LET"
+
+;;
+;; COMPILE-LET
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (setf (fdefinition 'compile-let)
+        #'avm.lang.compiler.lisp.compile::compile-let))
+
+(subtest "compile-let"
 
   (with-env (tenv aenv fenv venv)
-    (is (compile-form '(let ((x 1)) x) venv tenv aenv fenv)
+    (is (compile-let '(let ((x 1)) x) venv tenv aenv fenv)
         '(let ((x0 1))
            (declare (type fixnum x0))
            x0)
-        "Ok - Scalar type."))
+        "Base type - scalar type."))
 
   (with-env (tenv aenv fenv venv)
-    (let ((aenv1
-           (extend-appenv '#1=(int2 1 1) '(int int (:vector int 2)) aenv)))
-      (is (compile-form '(let ((x #1#)) x) venv tenv aenv1 fenv)
+    (let ((aenv1 (extend-appenv '#1=(int2 1 1)
+                                '(int int (:vector int 2))
+                                aenv)))
+      (is (compile-let '(let ((x #1#)) x) venv tenv aenv1 fenv)
           '(multiple-value-bind (x0 x1)
-               (the (values fixnum fixnum) (avm.lang.data::int2-values* 1 1))
+              (the (values fixnum fixnum) (avm.lang.data::int2-values* 1 1))
              (declare (type fixnum x0))
              (declare (type fixnum x1))
              (avm.lang.data::int2-values* x0 x1))
-          "Ok - Vector type.")))
+          "Base type - vector type.")))
 
   (with-env (tenv aenv fenv venv)
     (let ((tenv1 (extend-typenv 'as '(:array int) tenv))
           (venv1 (extend-varenv 'as '(:array int) venv)))
-      (is (compile-form '(let ((x as)) x) venv1 tenv1 aenv fenv)
+      (is (compile-let '(let ((x as)) x) venv1 tenv1 aenv fenv)
           '(let ((x1 as0))
              (declare (type int-array x1))
              x1)
-          "Ok - Array type.")))
+          "Base type - array type.")))
 
   (with-env (tenv aenv fenv venv)
-    (let ((aenv1
-           (extend-appenv '#2=(int2 1 1) '(int int (:vector int 2)) aenv)))
-      (is (compile-form '(let ((x 1) (y #2#)) x) venv tenv aenv1 fenv)
+    (let ((aenv1 (extend-appenv '#2=(int2 1 1)
+                                '(int int (:vector int 2))
+                                aenv)))
+      (is (compile-let '(let ((x 1) (y #2#)) x) venv tenv aenv1 fenv)
           '(let ((x0 1))
              (declare (type fixnum x0))
              (multiple-value-bind (y1 y2)
@@ -96,8 +106,8 @@
                (declare (type fixnum y1))
                (declare (type fixnum y2))
                x0))
-          "Ok - Multiple bindings.")))
-  )
+          "Base type - multiple bindings."))))
+
 
 (subtest "Built-in function application"
 
