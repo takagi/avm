@@ -109,25 +109,37 @@
           "Base type - multiple bindings."))))
 
 
-(subtest "Built-in function application"
+;;
+;; COMPILE-BUILT-IN-APPLY
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (setf (fdefinition 'compile-built-in-apply)
+        #'avm.lang.compiler.lisp.compile::compile-built-in-apply))
+
+(subtest "compile-built-in-apply"
 
   (with-env (tenv aenv fenv venv)
-    (let ((aenv1 (extend-appenv '#1=(coerce 1) '(int double) aenv)))
-      (is (compile-form '#1# venv tenv aenv1 fenv)
+    (let ((aenv1 (extend-appenv '#1=(+ 1 1) '(int int int) aenv)))
+      (is (compile-built-in-apply '#1# venv tenv aenv1 fenv)
+          '(the fixnum (+ 1 1))
+          "Base case - int addition.")))
+
+  (with-env (tenv aenv fenv venv)
+    (let ((aenv1 (extend-appenv '#2=(coerce 1) '(int double) aenv)))
+      (is (compile-built-in-apply '#2# venv tenv aenv1 fenv)
           '(the double-float (avm.lang.compiler.lisp.built-in::int->double 1))
-          "Ok.")))
+          "Base case - COERCE of int to double.")))
 
   (with-env (tenv aenv fenv venv)
-    (is-error (compile-form '(coerce 1) venv tenv aenv fenv)
+    (is-error (compile-built-in-apply '(+ 1 1) venv tenv aenv fenv)
               simple-error
               "Not exist in appenv."))
 
   (with-env (tenv aenv fenv venv)
-    (let ((aenv1 (extend-appenv '#2=(+ 1 1 1) '(int int int) aenv)))
-      (is-error (compile-form '#2# venv tenv aenv1 fenv)
+    (let ((aenv1 (extend-appenv '#3=(+ 1 1 1) '(int int int) aenv)))
+      (is-error (compile-built-in-apply '#3# venv tenv aenv1 fenv)
                 simple-error
-                "Invalid number of arguments.")))
-  )
+                "Invalid number of arguments."))))
 
 
 (finalize)
