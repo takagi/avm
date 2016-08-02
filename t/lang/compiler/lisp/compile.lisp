@@ -28,9 +28,9 @@
          (*genname-counter* 0))
      ,@body))
 
-(setf (fdefinition 'compile-form)
-      #'avm.lang.compiler.lisp.compile::compile-form)
 
+;;
+;; COMPILE-FUNCTION
 
 (subtest "compile-function"
 
@@ -54,7 +54,7 @@
                      (avm.lang.data:int3-add*
                       (avm.lang.data:int3-values* x0 x1 x2)
                       (avm.lang.data:int3-values* y3 y4 y5)))))
-                 "Vector type arguments."))))
+                 "Base case - vector type arguments."))))
 
 
 ;;
