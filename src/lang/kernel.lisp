@@ -68,14 +68,14 @@
 
 (defun make-macro (name arguments body)
   (check-type name avm-symbol)
-  (loop for argument in arguments
-     do (check-type argument avm-symbol))
   (with-gensyms (arguments1)
     (let ((expander (eval `#'(lambda (,arguments1)
                                (destructuring-bind ,arguments ,arguments1
                                  ,@body)))))
-      (%make-macro :name name :arguments arguments
-                   :body body :expander expander))))
+      (%make-macro :name name
+                   :arguments arguments
+                   :body body
+                   :expander expander))))
 
 
 ;;
