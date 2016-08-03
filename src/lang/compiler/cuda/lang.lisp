@@ -8,11 +8,8 @@
   (:use :cl
         :avm
         :avm.lang
-<<<<<<< HEAD
-        :avm.lang.convert-implicit-progn
-=======
         :avm.lang.expand-macro
->>>>>>> Introduce macro expansion.
+        :avm.lang.convert-implicit-progn
         :avm.lang.binarize
         :avm.lang.convert-functions
         :avm.lang.free-variable
@@ -22,7 +19,9 @@
         :avm.lang.infer
         :avm.lang.compiler.cuda.k-normal
         :avm.lang.compiler.cuda.compile
-        ))
+        )
+  (:shadowing-import-from :avm.lang.expand-macro
+                          :expand-macro))
 (in-package :avm.lang.compiler.cuda.lang)
 
 

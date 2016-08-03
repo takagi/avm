@@ -10,6 +10,7 @@
         :avm.lang
         :avm.lang.type
         :avm.lang.kernel
+        :avm.lang.expand-macro
         :avm.lang.convert-implicit-progn
         :avm.lang.binarize
         :avm.lang.convert-functions
@@ -21,7 +22,9 @@
         :avm.lang.infer
         :avm.lang.compiler.lisp.varenv
         :avm.lang.compiler.lisp.compile
-        ))
+        )
+  (:shadowing-import-from :avm.lang.expand-macro
+                          :expand-macro))
 (in-package :avm.lang.compiler.lisp.lang)
 
 

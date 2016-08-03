@@ -67,7 +67,8 @@
                   ((:file "cuda")
                    (:file "array")
                    (:file "kernel-manager")
-                   (:file "defkernel"))))))
+                   (:file "defkernel")
+                   (:file "macro"))))))
   :description "Efficient and expressive arrayed vector math library with multi-threading and CUDA support."
   :long-description
   #.(with-open-file (stream (merge-pathnames
