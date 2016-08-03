@@ -20,7 +20,8 @@
                  (:module "lang"
                   :serial t
                   :components
-                  ((:test-file "convert-implicit-progn")
+                  ((:test-file "expand-macro")
+                   (:test-file "convert-implicit-progn")
                    (:test-file "convert-functions")
                    (:test-file "free-variable")
                    (:module "compiler"

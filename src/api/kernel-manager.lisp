@@ -13,6 +13,7 @@
   (:export :make-kernel-manager
            :*kernel-manager*
            :kernel-manager-define-function
+           :kernel-manager-define-macro
            ))
 (in-package :avm.api.kernel-manager)
 
@@ -51,3 +52,7 @@
 
 (defun include-vector-type-p (type)
   (some #'vector-type-p (function-arg-types type)))
+
+(defun kernel-manager-define-macro (manager name args body)
+  (let ((kernel (kernel-manager-kernel manager)))
+    (kernel-define-macro kernel name args body)))

@@ -8,7 +8,11 @@
   (:use :cl
         :avm
         :avm.lang
+<<<<<<< HEAD
         :avm.lang.convert-implicit-progn
+=======
+        :avm.lang.expand-macro
+>>>>>>> Introduce macro expansion.
         :avm.lang.binarize
         :avm.lang.convert-functions
         :avm.lang.free-variable
@@ -36,19 +40,20 @@
         #'avm.lang.compiler.lisp.lang::subst-ftype))
 
 (defmethod compile-kernel-function ((engine (eql :cuda)) name args body kernel)
-  (let ((body1 (convert-functions
-                (binarize
-                 (convert-implicit-progn body)))))
+  (let* ((fenv (kernel->funenv kernel))
+         (body1 (convert-functions
+                 (binarize
+                  (convert-implicit-progn
+                   (expand-macro body fenv))))))
     ;; Check free variable existence.
     (let ((vars (kernel->vars kernel)))
       (check-free-variable args body1 vars))
     ;; K-normalization.
     (let ((body2 (k-normal body1)))
       ;; Type inference.
-      (let* ((tenv (kernel->typenv kernel))
-             (aenv (empty-appenv))
-             (uenv (empty-unienv))
-             (fenv (kernel->funenv kernel)))
+      (let ((tenv (kernel->typenv kernel))
+            (aenv (empty-appenv))
+            (uenv (empty-unienv)))
         (multiple-value-bind (ftype aenv1 uenv1)
             (infer-function name args body2 tenv aenv uenv fenv)
           ;; Compilation.
