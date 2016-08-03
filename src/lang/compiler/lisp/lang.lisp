@@ -54,7 +54,7 @@
            (let ((name1 (kernel-function-lisp-name kernel name))
                  (type (kernel-function-type kernel name))
                  (args (kernel-function-arguments kernel name)))
-             (extend-funenv name name1 type args funenv1))))
+             (extend-funenv-function name name1 type args funenv1))))
     (reduce #'aux (kernel-function-names kernel)
             :initial-value funenv)))
 
