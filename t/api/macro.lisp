@@ -44,4 +44,27 @@
               "Invalid PROGN form."))
 
 
+;;
+;; LET*
+
+(subtest "let*"
+
+  (is (expand-macro '(let* ((x 1)
+                            (y (+ x 1)))
+                       (+ x y)))
+      '(let ((x 1))
+         (let ((y (+ x 1)))
+           (progn (+ x y))))
+      "Base case.")
+
+  (is (expand-macro '(let* () 1))
+      1
+      "Base case - no bindings.")
+
+  (is (expand-macro '(let* ((x 1))))
+      '(let ((x 1))
+         (progn))
+      "Base case - no body."))
+
+
 (finalize)
