@@ -475,7 +475,15 @@ To be described.
 
 These built-in functions provide mathematical functions.
 
-### [Built-in Macro] ...
+### [Built-in Macro] progn
+
+    PROGN
+
+To be described.
+
+### [Built-in Macro] let*
+
+    LET*
 
 To be described.
 
