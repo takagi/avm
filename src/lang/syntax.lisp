@@ -334,7 +334,12 @@
 ;; Application
 
 (defun apply-p (object)
-  (consp object))
+  (cl-pattern:match object
+    ((operator . _)
+     (unless (avm-symbol-p operator)
+       (error "Illegal function call: ~S" object))
+     t)
+    (_ nil)))
 
 (defun apply-operator (form)
   (car form))
