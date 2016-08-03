@@ -13,6 +13,7 @@
   (:export :expand-macro-1
            :expand-macro
            :progn
+           :let*
            ))
 (in-package :avm.api.macro)
 
@@ -42,3 +43,17 @@
 
 (defkernel-macro progn (&body body)
   (progn-form body))
+
+
+;;
+;; LET*
+
+(defun let*-form (bindings body)
+  (if bindings
+      (destructuring-bind (binding . bindings1) bindings
+        `(let (,binding)
+           ,(let*-form bindings1 body)))
+      `(progn ,@body)))
+
+(defkernel-macro let* (bindings &body body)
+  (let*-form bindings body))
