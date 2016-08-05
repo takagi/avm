@@ -94,6 +94,24 @@
 
 
 ;;
+;; COMPILE-PROGN
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (setf (fdefinition 'compile-progn)
+        #'avm.lang.compiler.cuda.compile::compile-progn))
+
+(subtest "compile-progn"
+
+  ;; Base case - tail.
+
+  ;; Base case - non-tail.
+
+  ;; Invalid form.
+
+  )
+
+
+;;
 ;; COMPILE-LET
 
 (eval-when (:compile-toplevel :load-toplevel :execute)

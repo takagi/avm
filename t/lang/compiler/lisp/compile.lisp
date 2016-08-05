@@ -57,6 +57,26 @@
 
 
 ;;
+;; COMPILE-PROGN
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (setf (fdefinition 'compile-progn)
+        #'avm.lang.compiler.lisp.compile::compile-progn))
+
+(subtest "compile-progn"
+
+  (with-env (aenv fenv venv)
+    (is (compile-progn '(progn 1 2 3) venv aenv fenv)
+        '(progn 1 2 3)
+        "Base case."))
+
+  (with-env (aenv fenv venv)
+    (is-error (compile-progn '(progn) venv aenv fenv)
+              simple-error
+              "Invalid form.")))
+
+
+;;
 ;; COMPILE-LET
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
