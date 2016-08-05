@@ -26,8 +26,8 @@
 (defun extend-varenv (var type venv)
   (check-type var avm-symbol)
   (check-type type avm-type)
-  (let ((var1 (unique-var var type)))
-    (values (acons var var1 venv) var1)))
+  (let ((vars (unique-var var type)))
+    (cons (list var vars type) venv)))
 
 (defun varenv-exists-p (var venv)
   (check-type var avm-symbol)
@@ -35,8 +35,10 @@
        t))
 
 (defun query-varenv (var venv)
-  (or (cdr (assoc var venv))
-      (error "The variable ~S not found." var)))
+  (let ((entry (assoc var venv)))
+    (if entry
+        (values-list (cdr entry))
+        (error "The variable ~S not found." var))))
 
 (defvar *genvar-counter* 0)
 
