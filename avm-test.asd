@@ -20,6 +20,7 @@
                   :serial t
                   :components
                   ((:test-file "convert-functions")
+                   (:test-file "free-variable")
                    (:module "compiler"
                     :serial t
                     :components
