@@ -8,6 +8,7 @@
   (:use :cl
         :avm
         :avm.lang
+        :avm.lang.convert-implicit-progn
         :avm.lang.binarize
         :avm.lang.convert-functions
         :avm.lang.free-variable
@@ -36,7 +37,8 @@
 
 (defmethod compile-kernel-function ((engine (eql :cuda)) name args body kernel)
   (let ((body1 (convert-functions
-                (binarize body))))
+                (binarize
+                 (convert-implicit-progn body)))))
     ;; Check free variable existence.
     (let ((vars (kernel->vars kernel)))
       (check-free-variable args body1 vars))
