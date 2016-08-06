@@ -118,7 +118,7 @@
 
 (defvar *compile-on-runtime* nil)
 
-(defmacro defkernel (name args body)
+(defmacro defkernel (name args &body body)
   (if (not *compile-on-runtime*)
       (defkernel-form *kernel-manager* name args body)
       `(eval-when (:compile-toplevel :load-toplevel :execute)

@@ -16,10 +16,12 @@
   :components ((:module "t"
                 :components
                 ((:test-file "avm")
+                 (:file "util")
                  (:module "lang"
                   :serial t
                   :components
-                  ((:test-file "convert-functions")
+                  ((:test-file "convert-implicit-progn")
+                   (:test-file "convert-functions")
                    (:test-file "free-variable")
                    (:module "compiler"
                     :serial t
