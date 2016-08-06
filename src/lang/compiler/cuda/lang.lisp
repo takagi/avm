@@ -21,18 +21,18 @@
 (in-package :avm.lang.compiler.cuda.lang)
 
 
-(setf (fdefinition 'kernel->vars)
-      #'avm.lang.compiler.lisp.lang::kernel->vars)
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (setf (fdefinition 'kernel->vars)
+        #'avm.lang.compiler.lisp.lang::kernel->vars)
 
-(setf (fdefinition 'kernel->typenv)
-      #'avm.lang.compiler.lisp.lang::kernel->typenv)
+  (setf (fdefinition 'kernel->typenv)
+        #'avm.lang.compiler.lisp.lang::kernel->typenv)
 
-(setf (fdefinition 'kernel->funenv)
-      #'avm.lang.compiler.lisp.lang::kernel->funenv)
+  (setf (fdefinition 'kernel->funenv)
+        #'avm.lang.compiler.lisp.lang::kernel->funenv)
 
-(setf (fdefinition 'subst-ftype)
-      #'avm.lang.compiler.lisp.lang::subst-ftype)
-
+  (setf (fdefinition 'subst-ftype)
+        #'avm.lang.compiler.lisp.lang::subst-ftype))
 
 (defmethod compile-kernel-function ((engine (eql :cuda)) name args body kernel)
   (let ((body1 (convert-functions
