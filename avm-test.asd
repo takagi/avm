@@ -19,7 +19,8 @@
                  (:module "lang"
                   :serial t
                   :components
-                  ((:module "compiler"
+                  ((:test-file "convert-functions")
+                   (:module "compiler"
                     :serial t
                     :components
                     ((:module "lisp"
