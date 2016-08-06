@@ -33,6 +33,7 @@
            :let-p
            :let-bindings
            :let-body
+           :let-body-progn
            ;; FLET
            :flet-p
            :flet-bindings
@@ -168,7 +169,7 @@
 
 (defun let-bindings (form)
   (cl-pattern:match form
-    (('let bindings _)
+    (('let bindings . _)
      (unless (every #'binding-p bindings)
        (error "The form ~S is malformed." form))
      (unless (null #1=(find-duplicate (mapcar #'car bindings)))
@@ -188,9 +189,16 @@
     (t (find-duplicate (cdr xs)))))
 
 (defun let-body (form)
-  ;; TODO: implicit progn.
   (cl-pattern:match form
-    (('let _ body) body)
+    (('let _ . body) (or body
+                         (error "The form ~S is malformed." body)))
+    (_ (error "The form ~S is malformed." form))))
+
+(defun let-body-progn (form)
+  (cl-pattern:match form
+    (('let _ . body)
+     (or body
+         (error "The form ~S is malformed." body)))
     (_ (error "The form ~S is malformed." form))))
 
 
@@ -204,7 +212,7 @@
 
 (defun flet-bindings (form)
   (cl-pattern:match form
-    (('flet bindings _)
+    (('flet bindings . _)
      (unless (every #'fbinding-p bindings)
        (error "The form ~S is malformed." form))
      (unless (not #1=(find-duplicate (mapcar #'car bindings)))
@@ -214,14 +222,14 @@
 
 (defun fbinding-p (object)
   (cl-pattern:match object
-    ((name args _) (and (avm-symbol-p name)
-                        (every #'avm-symbol-p args)))
+    ((name args . _) (and (avm-symbol-p name)
+                          (every #'avm-symbol-p args)))
     (_ nil)))
 
 (defun flet-body (form)
-  ;; TODO: implicit progn.
   (cl-pattern:match form
-    (('flet _ body) body)
+    (('flet _ . body) (or body
+                          (error "The form ~S is malformed." form)))
     (_ (error "The form ~S is malformed." form))))
 
 
@@ -235,7 +243,7 @@
 
 (defun labels-bindings (form)
   (cl-pattern:match form
-    (('labels bindings _)
+    (('labels bindings . _)
      (unless (every #'fbinding-p bindings)
        (error "The form ~S is malformed." form))
      (unless (not #1=(find-duplicate (mapcar #'car bindings)))
@@ -244,9 +252,10 @@
     (_ (error "The form ~S is malformed." form))))
 
 (defun labels-body (form)
-  ;; TODO: implicit progn.
   (cl-pattern:match form
-    (('labels _ body) body)
+    (('labels _ . body)
+     (or body
+         (error "The form ~S is malformed." form)))
     (_ (error "The form ~S is malformed." form))))
 
 

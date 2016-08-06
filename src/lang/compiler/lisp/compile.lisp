@@ -149,6 +149,12 @@
   (let ((value (the-value form)))
     (compile-form value venv tenv aenv fenv)))
 
+(defun compile-progn (form venv tenv aenv fenv)
+  (let ((forms (progn-forms form)))
+    (let ((forms1 (loop for form in forms
+                     collect (compile-form form venv tenv aenv fenv))))
+      
+
 (defun compile-if (form venv tenv aenv fenv)
   (let ((test-form (if-test-form form))
         (then-form (if-then-form form))
@@ -194,7 +200,7 @@
                       ,(%compile-let bindings1 body venv
                                      tenv aenv fenv venv2 tenv2))))
                 (t (error "Must not be reached.")))))))
-      (compile-form body venv1 tenv1 aenv fenv)))
+      (compile-form `(progn ,@body) venv1 tenv1 aenv fenv)))
 
 (defun compile-flet (form venv tenv aenv fenv)
   (let ((bindings (flet-bindings form))
@@ -203,10 +209,11 @@
 
 (defun %compile-flet (op bindings body rec-p venv tenv aenv fenv fenv1)
   (if bindings
-      (destructuring-bind ((name args form) . bindings1) bindings
+      (destructuring-bind ((name args . forms) . bindings1) bindings
         (let ((ftype (query-appenv (car bindings) aenv)))
           (multiple-value-bind (name1 args1 form1)
-              (compile-function name ftype args form venv tenv aenv fenv
+              (compile-function name ftype args `(progn ,@forms)
+                                venv tenv aenv fenv
                                 :entry-p nil :rec-p rec-p)
             (let ((fenv2 (extend-funenv name name1 ftype args fenv1)))
               (multiple-value-bind (body1 return-type)
@@ -215,7 +222,7 @@
                 (values `(,op ((,name1 ,args1 ,@form1))
                            ,body1)
                         return-type))))))
-      (compile-form body venv tenv aenv fenv1)))
+      (compile-form `(progn ,@body) venv tenv aenv fenv1)))
 
 (defun compile-labels (form venv tenv aenv fenv)
   (let ((bindings (labels-bindings form))

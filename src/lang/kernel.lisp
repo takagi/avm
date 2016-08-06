@@ -70,6 +70,7 @@
   (check-type name avm-symbol)
   (loop for argument in arguments
      do (check-type argument avm-symbol))
+  (check-type body list)
   (with-gensyms (arguments1)
     (let ((expander (eval `#'(lambda (,arguments1)
                                (destructuring-bind ,arguments ,arguments1

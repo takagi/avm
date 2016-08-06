@@ -36,10 +36,19 @@
                      (extend-funenv name nil ftype args fenv)
                      fenv)))
       (multiple-value-bind (return-type1 aenv1 uenv1)
-          (infer-form body tenv1 aenv uenv fenv1)
+          (infer-forms body tenv1 aenv uenv fenv1)
         (multiple-value-bind (_ uenv2) (unify return-type return-type1 uenv1)
           (declare (ignore _))
           (values ftype aenv1 uenv2))))))
+
+(defun infer-forms (forms tenv aenv uenv fenv)
+  (flet ((aux (type-aenv-uenv form)
+           (destructuring-bind (type1 aenv1 uenv1) type-aenv-uenv
+             (declare (ignore type1))
+             (multiple-value-list
+              (infer-form form tenv aenv1 uenv1 fenv)))))
+    (values-list
+     (reduce #'aux forms :initial-value (list aenv uenv)))))
 
 (defun infer-form (form tenv aenv uenv fenv)
   (cond
@@ -100,19 +109,19 @@
               (values then-type2 aenv3 uenv5))))))))
 
 (defun infer-let (form tenv aenv uenv fenv)
-  (flet ((aux (tenv-aenv-uenv binding)
-           (destructuring-bind (tenv1 aenv1 uenv1) tenv-aenv-uenv
-             (destructuring-bind (var value) binding
-               (multiple-value-bind (type aenv2 uenv2)
-                   (infer-form value tenv aenv1 uenv1 fenv)
-                 (let ((tenv2 (extend-typenv var type tenv1))
-                       (aenv3 (extend-appenv binding type aenv2)))
-                   (list tenv2 aenv3 uenv2)))))))
-    (let ((bindings (let-bindings form))
-          (body (let-body form)))
-      (destructuring-bind (tenv1 aenv1 uenv1)
-          (reduce #'aux bindings :initial-value (list tenv aenv uenv))
-        (infer-form body tenv1 aenv1 uenv1 fenv)))))
+  (let ((bindings (let-bindings form))
+        (body (let-body form)))
+    (%infer-let bindings body tenv aenv uenv fenv tenv)))
+
+(defun %infer-let (bindings body tenv aenv uenv fenv tenv1)
+  (if bindings
+      (destructuring-bind ((var value) . bindings1) bindings
+        (multiple-value-bind (type aenv1 uenv1)
+            (infer-form value tenv aenv uenv fenv)
+          (let ((tenv2 (extend-typenv var type tenv1))
+                (aenv2 (extend-appenv (car bindings) type aenv1)))
+            (%infer-let bindings1 body tenv aenv2 uenv1 fenv tenv2))))
+      (infer-forms body tenv1 aenv uenv fenv)))
 
 (defun infer-flet (form tenv aenv uenv fenv)
   (let ((bindings (flet-bindings form))
@@ -121,13 +130,13 @@
 
 (defun %infer-flet (bindings body rec-p tenv aenv uenv fenv fenv1)
   (if bindings
-      (destructuring-bind ((name args form) . bindings1) bindings
+      (destructuring-bind ((name args . forms) . bindings1) bindings
         (multiple-value-bind (ftype aenv1 uenv1)
-            (infer-function name args form tenv aenv uenv fenv :rec-p rec-p)
+            (infer-function name args forms tenv aenv uenv fenv :rec-p rec-p)
           (let ((fenv2 (extend-funenv name nil ftype args fenv1))
                 (aenv2 (extend-appenv (car bindings) ftype aenv1)))
             (%infer-flet bindings1 body rec-p tenv aenv2 uenv1 fenv fenv2))))
-      (infer-form body tenv aenv uenv fenv1)))
+      (infer-forms body tenv aenv uenv fenv1)))
 
 (defun infer-labels (form tenv aenv uenv fenv)
   (let ((bindings (labels-bindings form))

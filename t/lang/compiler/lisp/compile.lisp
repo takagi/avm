@@ -58,6 +58,26 @@
 
 
 ;;
+;; COMPILE-PROGN
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (setf (fdefinition 'compile-progn)
+        #'avm.lang.compiler.lisp.compile::compile-progn))
+
+(subtest "compile-progn"
+
+  (with-env (tenv anev fenv venv)
+    (is (compile-progn '(progn 1 2 3) venv tenv aenv fenv)
+        `(progn 1 2 3)
+        "Base case."))
+
+  (with-env (tenv anev fenv venv)
+    (is-error (compile-progn '(progn) venv tenv aenv fenv)
+              simple-error
+              "Invalid form.")))
+
+
+;;
 ;; COMPILE-LET
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -106,7 +126,15 @@
                (declare (type fixnum y1))
                (declare (type fixnum y2))
                x0))
-          "Base type - multiple bindings."))))
+          "Base type - multiple bindings.")))
+
+  (with-env (tenv aenv fenv venv)
+    (is (compile-let '(let ((x 1)) x x) venv tenv aenv fenv)
+        '(let ((x0 1))
+           (declare (type fixnum x0))
+           x0
+           x0)
+        "Base type - implicit progn.")))
 
 
 ;;

@@ -162,7 +162,7 @@
                          ,value1
                          ,body1)
                       funcs2)))))
-      (compile-form body dest aenv fenv funcs)))
+      (compile-form `(progn ,@body) dest aenv fenv funcs)))
 
 (defun compile-flet (form dest aenv fenv funcs)
   (let ((bindings (flet-bindings form))
@@ -171,15 +171,16 @@
 
 (defun %compile-flet (bindings body dest rec-p aenv fenv fenv1 funcs)
   (if bindings
-      (destructuring-bind ((name args form) . bindings1) bindings
+      (destructuring-bind ((name args . forms) . bindings1) bindings
         (let ((ftype (query-appenv (car bindings) aenv)))
           (multiple-value-bind (name1 funcs1)
-              (compile-function name ftype args form aenv fenv funcs
+              (compile-function name ftype args `(progn ,@forms)
+                                aenv fenv funcs
                                 :entry-p nil :rec-p rec-p)
             (let ((fenv2 (extend-funenv name name1 ftype args fenv1)))
               (%compile-flet bindings1 body dest rec-p
                              aenv fenv fenv2 funcs1)))))
-      (compile-form body dest aenv fenv1 funcs)))
+      (compile-form `(progn ,@body) dest aenv fenv1 funcs)))
 
 (defun compile-labels (form dest aenv fenv funcs)
   (let ((bindings (labels-bindings form))

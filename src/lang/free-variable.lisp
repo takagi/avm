@@ -15,12 +15,16 @@
 ;;
 ;; Check free variable existence
 
-(defun check-free-variable (args form vars)
+(defun check-free-variable (args forms vars)
   (let ((vars1 (append args vars)))
-    (%check-free-variable form vars vars1))
-  form)
+    (check-free-variable-forms forms vars vars1))
+  (values))
 
-(defun %check-free-variable (form vars0 vars)
+(defun check-free-variable-forms (forms vars0 vars)
+  (loop for form in forms
+     do (check-free-variable-form form vars0 vars)))
+
+(defun check-free-variable-form (form vars0 vars)
   (cond
     ((literal-p form) nil)
     ((reference-p form) (check-free-variable-reference form vars0 vars))
@@ -44,25 +48,25 @@
 
 (defun check-free-variable-the (form vars0 vars)
   (let ((value (the-value form)))
-    (%check-free-variable value vars0 vars)))
+    (check-free-variable-form value vars0 vars)))
 
 (defun check-free-variable-if (form vars0 vars)
   (let ((test-form (if-test-form form))
         (then-form (if-then-form form))
         (else-form (if-else-form form)))
-    (%check-free-variable test-form vars0 vars)
-    (%check-free-variable then-form vars0 vars)
-    (%check-free-variable else-form vars0 vars)))
+    (check-free-variable-form test-form vars0 vars)
+    (check-free-variable-form then-form vars0 vars)
+    (check-free-variable-form else-form vars0 vars)))
 
 (defun check-free-variable-let (form vars0 vars)
   (flet ((aux (vars1 binding)
            (destructuring-bind (var value) binding
-             (%check-free-variable value vars0 vars)
+             (check-free-variable-form value vars0 vars)
              (cons var vars1))))
     (let ((bindings (let-bindings form))
           (body (let-body form)))
       (let ((vars1 (reduce #'aux bindings :initial-value vars)))
-        (%check-free-variable body vars0 vars1)))))
+        (check-free-variable-forms body vars0 vars1)))))
 
 (defun check-free-variable-flet (form vars0 vars)
   (let ((bindings (flet-bindings form))
@@ -71,12 +75,12 @@
 
 (defun %check-free-variable-flet (bindings body vars0 vars)
   (flet ((aux (binding)
-           (destructuring-bind (name args body) binding
+           (destructuring-bind (name args . forms) binding
              (declare (ignore name))
-             (check-free-variable args body vars0))))
+             (check-free-variable args forms vars0))))
     (loop for binding in bindings
        do (aux binding))
-    (%check-free-variable body vars0 vars)))
+    (check-free-variable-forms body vars0 vars)))
 
 (defun check-free-variable-labels (form vars0 vars)
   (let ((bindings (labels-bindings form))
@@ -86,10 +90,10 @@
 (defun check-free-variable-set (form vars0 vars)
   (let ((place (set-place form))
         (value (set-value form)))
-    (%check-free-variable place vars0 vars)
-    (%check-free-variable value vars0 vars)))
+    (check-free-variable-form place vars0 vars)
+    (check-free-variable-form value vars0 vars)))
 
 (defun check-free-variable-apply (form vars0 vars)
   (let ((operands (apply-operands form)))
     (loop for operand in operands
-       do (%check-free-variable operand vars0 vars))))
+       do (check-free-variable-form operand vars0 vars))))
