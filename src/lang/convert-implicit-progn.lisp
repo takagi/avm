@@ -31,7 +31,7 @@
     ((let-p form) (convert-let form))
     ((flet-p form) (convert-flet form))
     ((labels-p form) (convert-labels form))
-    ((set-p form) (convert-set form))
+    ((setf-p form) (convert-setf form))
     ((apply-p form) (convert-apply form))
     (t (error "The value ~S is an invalid form." form))))
 
@@ -79,12 +79,12 @@
         (body (labels-body% form)))
     (%convert-flet 'labels bindings body)))
 
-(defun convert-set (form)
-  (let ((place (set-place form))
-        (value (set-value form)))
+(defun convert-setf (form)
+  (let ((place (setf-place form))
+        (value (setf-value form)))
     (let ((place1 (convert-place place))
           (value1 (convert-form value)))
-      `(set ,place1 ,value1))))
+      `(setf ,place1 ,value1))))
 
 (defun convert-place (place)
   (cond

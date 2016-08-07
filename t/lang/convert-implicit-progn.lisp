@@ -178,29 +178,29 @@
 
 
 ;;
-;; CONVERT-SET
+;; CONVERT-SETF
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (setf (fdefinition 'convert-set)
-        #'avm.lang.convert-implicit-progn::convert-set))
+  (setf (fdefinition 'convert-setf)
+        #'avm.lang.convert-implicit-progn::convert-setf))
 
-(subtest "convert-set"
+(subtest "convert-setf"
 
   (is (replace-gensym
-       (convert-set '(set x (let ((x 1))
-                              1 2))))
-      '(set x (let ((x 1))
-                (let ((_ 1))
-                  2)))
+       (convert-setf '(setf x (let ((x 1))
+                                1 2))))
+      '(setf x (let ((x 1))
+                 (let ((_ 1))
+                   2)))
       "Base case.")
 
   (is (replace-gensym
-       (convert-set '(set (aref x (let ((x 1))
-                                    1 2))
-                          1)))
-      '(set (aref x (let ((x 1))
-                      (let ((_ 1))
-                        2)))
+       (convert-setf '(setf (aref x (let ((x 1))
+                                      1 2))
+                            1)))
+      '(setf (aref x (let ((x 1))
+                       (let ((_ 1))
+                         2)))
             1)
       "Base case - LET form in array place."))
 
