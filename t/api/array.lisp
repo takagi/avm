@@ -300,7 +300,7 @@
             "Invalid array."))
 
 (defkernel fill-ones (xs)
-  (set (aref xs i) 1))
+  (setf (aref xs i) 1))
 
 (subtest "array-aref"
 

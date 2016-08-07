@@ -14,7 +14,7 @@ Efficient and expressive arrayed vector math library with multi-threading and CU
                  0)))
     (let ((a (/ (coerce (- (mod i 2048) 512)) 1024.0))
           (b (/ (coerce (- (/ i 2048) 1024)) 1024.0)))
-      (set (aref xs i) (aux 0.0 0.0 a b 1)))))
+      (setf (aref xs i) (aux 0.0 0.0 a b 1)))))
 
 (defun draw-mandelbrot (pathname xs)
   (with-open-file (out pathname :direction :output
@@ -72,7 +72,7 @@ Defines a kernel function. A defined kernel function is callable as if it is an 
 
 ```common-lisp
 (defkernel fill-one (xs a)
-  (set (aref xs i) 1))
+  (setf (aref xs i) 1))
 
 (with-array (xs int 1000)
   (fill-one xs))
@@ -298,16 +298,16 @@ Double precision floating point type `double` and its derived vector types.
 => 10
 ```
 
-### [Syntax] set
+### [Syntax] setf
 
-    SET place value => result
+    SETF place value => result
 
-`set` changes the value of `place` to be `value` and returns `value` as its result. Accessor forms are acceptable as `place`s.
+`setf` changes the value of `place` to be `value` and returns `value` as its result. Accessor forms are acceptable as `place`s.
 
 **Example:**
 
 ```common-lisp
-(set (aref xs i) (+ (aref xs i) (int2 1 1)))
+(setf (aref xs i) (+ (aref xs i) (int2 1 1)))
 => (int2 1 1)
 ```
 
@@ -371,14 +371,14 @@ Double precision floating point type `double` and its derived vector types.
     INT4-Z form => result
     INT4-W form => result
 
-Accesses each component of `int` derived vector types. The type of `form` should be of each accessor's corresponding vector type. The type of result is `int`. You can read its value as well as destructively set it with SET form.
+Accesses each component of `int` derived vector types. The type of `form` should be of each accessor's corresponding vector type. The type of result is `int`. You can read its value as well as destructively set it with SETF form.
 
 **Example:**
 
 ```common-lisp
 (int2-x (int2 1 2)) => 1
 (let ((x (int2 1 2)))
-  (set (int2-x x) 3)
+  (setf (int2-x x) 3)
   x)
 => (int2 3 2)
 ```
@@ -395,14 +395,14 @@ Accesses each component of `int` derived vector types. The type of `form` should
     FLOAT4-Z form => result
     FLOAT4-W form => result
 
-Accesses each component of `float` derived vector types. The type of `form` should be of each accessor's corresponding vector type. The type of result is `float`. You can read its value as well as destructively set it with SET form.
+Accesses each component of `float` derived vector types. The type of `form` should be of each accessor's corresponding vector type. The type of result is `float`. You can read its value as well as destructively set it with SETF form.
 
 **Example:**
 
 ```common-lisp
 (float2-x (float2 1.0 2.0)) => 1.0
 (let ((x (float2 1.0 2.0)))
-  (set (float2-x x) 3.0)
+  (setf (float2-x x) 3.0)
   x)
 => (float2 3.0 2.0)
 ```
@@ -419,14 +419,14 @@ Accesses each component of `float` derived vector types. The type of `form` shou
     DOUBLE4-Z form => result
     DOUBLE4-W form => result
 
-Accesses each component of `double` derived vector types. The type of `form` should be of each accessor's corresponding vector type. The type of result is `double`. You can read its value as well as destructively set it with SET form.
+Accesses each component of `double` derived vector types. The type of `form` should be of each accessor's corresponding vector type. The type of result is `double`. You can read its value as well as destructively set it with SETF form.
 
 **Example:**
 
 ```common-lisp
 (double2-x (double2 1.0d0 2.0d0)) => 1.0d0
 (let ((x (double2 1.0d0 2.0d0)))
-  (set (double2-x x) 3.0d0)
+  (setf (double2-x x) 3.0d0)
   x)
 => (double2 3.0d0 2.0d0)
 ```
@@ -435,15 +435,15 @@ Accesses each component of `double` derived vector types. The type of `form` sho
 
     AREF array index => result
 
-Accesses the `array` element specified by the `index`. The type of `array` is an array type with base type of `int`, `float`, `double` and their derived vector types. The type of `index` is `int`, and the type of `result` is the base type. You can read its value as well as destructively set it with SET form.
+Accesses the `array` element specified by the `index`. The type of `array` is an array type with base type of `int`, `float`, `double` and their derived vector types. The type of `index` is `int`, and the type of `result` is the base type. You can read its value as well as destructively set it with SETF form.
 
 **Example:**
 
 ```common-lisp
 (aref xs 0) => 1
-(set (aref xs 0) 1) => 1
+(setf (aref xs 0) 1) => 1
 (aref ys 0) => (int2 1 1)
-(set (aref ys 0) (int2 2 2)) => 2
+(setf (aref ys 0) (int2 2 2)) => 2
 ```
 
 ### [Built-in Variable] i, n
