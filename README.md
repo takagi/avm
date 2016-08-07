@@ -502,7 +502,15 @@ Accesses the `array` element specified by the `index`. The type of `array` is an
 
 ### [Built-in Function] +, -, *, /, mod
 
-To be described.
+These functions provide arithmetic operations. `+` and `-` accept scalar type and vector type arithmetic. `*` and `/` accept scalar type arithmetic. `mod` accepts `int` type operands. `+`, `-`, `*` and `/` may take more than two arguments.
+
+```common-lisp
+(defkernel add2 (x y)
+  (the int2 (+ x y)))
+
+(defkernel add3 (x y z)
+  (the int2 (+ x y z)))
+```
 
 ### [Built-in Function] \*., .\*, /.
 
