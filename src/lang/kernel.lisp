@@ -16,6 +16,7 @@
            :kernel
            :make-kernel
            :kernel-function-names
+           :kernel-macro-names
            ;; Functions
            :kernel-define-function
            :kernel-function-exists-p
@@ -25,6 +26,12 @@
            :kernel-function-arguments
            :kernel-function-body
            ;; Macros
+           :kernel-define-macro
+           :kernel-macro-exists-p
+           :kernel-macro-name
+           :kernel-macro-arguments
+           :kernel-macro-body
+           :kernel-macro-expander
            ;; Globals
            ;; Constants
            ;; Symbol macros.
@@ -48,6 +55,7 @@
   (check-type type function-type)
   (loop for argument in arguments
      do (check-type argument avm-symbol))
+  (check-type body list)
   (unless (= (1- (length type)) (length arguments))
     (error "Invalid number of arguments against type: ~S" (length arguments)))
   (%make-function :name name
@@ -132,6 +140,13 @@
         when (function-p entry)
         collect name))))
 
+(defun kernel-macro-names (kernel)
+  (let ((namespace (kernel-function-namespace kernel)))
+    (nreverse
+     (loop for (name entry) on namespace by #'cddr
+        when (macro-p entry)
+        collect name))))
+
 
 ;;
 ;; Kernel - Functions
@@ -170,6 +185,34 @@
 
 ;;
 ;; Kernel - Macros
+
+(defun kernel-define-macro (kernel name args body)
+  (symbol-macrolet ((namespace (kernel-function-namespace kernel)))
+    (let ((macro (make-macro name args body)))
+      (setf (getf namespace name) macro)))
+  name)
+
+(defun kernel-macro-exists-p (kernel name)
+  (let ((namespace (kernel-function-namespace kernel)))
+    (macro-p (getf namespace name))))
+
+(defun %lookup-macro (kernel name)
+  (unless (kernel-macro-exists-p kernel name)
+    (error "The macro ~S is undefined." name))
+  (let ((namespace (kernel-function-namespace kernel)))
+    (getf namespace name)))
+
+(defun kernel-macro-name (kernel name)
+  (macro-name (%lookup-macro kernel name)))
+
+(defun kernel-macro-arguments (kernel name)
+  (macro-arguments (%lookup-macro kernel name)))
+
+(defun kernel-macro-body (kernel name)
+  (macro-body (%lookup-macro kernel name)))
+
+(defun kernel-macro-expander (kernel name)
+  (macro-expander (%lookup-macro kernel name)))
 
 
 ;;

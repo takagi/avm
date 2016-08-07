@@ -33,7 +33,7 @@
                    (reduce #'aux (mapcar #'cons args arg-types)
                            :initial-value tenv)))
           (fenv1 (if rec-p
-                     (extend-funenv name nil ftype args fenv)
+                     (extend-funenv-function name nil ftype args fenv)
                      fenv)))
       (multiple-value-bind (return-type1 aenv1 uenv1)
           (infer-form body tenv1 aenv uenv fenv1)
@@ -124,7 +124,7 @@
       (destructuring-bind ((name args form) . bindings1) bindings
         (multiple-value-bind (ftype aenv1 uenv1)
             (infer-function name args form tenv aenv uenv fenv :rec-p rec-p)
-          (let ((fenv2 (extend-funenv name nil ftype args fenv1))
+          (let ((fenv2 (extend-funenv-function name nil ftype args fenv1))
                 (aenv2 (extend-appenv (car bindings) ftype aenv1)))
             (%infer-flet bindings1 body rec-p tenv aenv2 uenv1 fenv fenv2))))
       (infer-form body tenv aenv uenv fenv1)))
@@ -157,13 +157,13 @@
           (operands (apply-operands form)))
       (let ((argc (if (built-in-exists-p operator)
                       (built-in-argc operator)
-                      (funenv-argc operator fenv))))
+                      (funenv-function-argc operator fenv))))
         (unless (= argc (length operands))
           (error "Invalid number of arguments: ~S" (length operands))))
       (let* ((type (if (built-in-exists-p operator)
                        (type-scheme-to-type
                         (built-in-type-scheme operator))
-                       (funenv-type operator fenv)))
+                       (funenv-function-type operator fenv)))
              (aenv1 (extend-appenv form type aenv)))
         (let ((argtypes (function-arg-types type))
               (return-type (function-return-type type)))

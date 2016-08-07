@@ -10,6 +10,8 @@
         :avm.lang
         :avm.lang.type
         :avm.lang.kernel
+        :avm.lang.expand-macro
+        :avm.lang.convert-implicit-progn
         :avm.lang.binarize
         :avm.lang.convert-functions
         :avm.lang.free-variable
@@ -20,7 +22,9 @@
         :avm.lang.infer
         :avm.lang.compiler.lisp.varenv
         :avm.lang.compiler.lisp.compile
-        ))
+        )
+  (:shadowing-import-from :avm.lang.expand-macro
+                          :expand-macro))
 (in-package :avm.lang.compiler.lisp.lang)
 
 
@@ -48,34 +52,46 @@
 ;    (%extend-globals-typenv kernel
      (empty-typenv));))
 
+(defun %extend-macros (kernel funenv)
+  (flet ((aux (funenv1 name)
+           (let ((args (kernel-macro-arguments kernel name))
+                 (body (kernel-macro-body kernel name))
+                 (expander (kernel-macro-expander kernel name)))
+             (extend-funenv-macro name args body expander funenv1))))
+    (reduce #'aux (kernel-macro-names kernel)
+            :initial-value funenv)))
+
 (defun %extend-functions (kernel funenv)
   (flet ((aux (funenv1 name)
            (let ((name1 (kernel-function-lisp-name kernel name))
                  (type (kernel-function-type kernel name))
                  (args (kernel-function-arguments kernel name)))
-             (extend-funenv name name1 type args funenv1))))
+             (extend-funenv-function name name1 type args funenv1))))
     (reduce #'aux (kernel-function-names kernel)
             :initial-value funenv)))
 
 (defun kernel->funenv (kernel)
+  (%extend-macros kernel
    (%extend-functions kernel
-    (empty-funenv)))
+    (empty-funenv))))
 
 (defun subst-ftype (uenv ftype)
   (loop for type in ftype
      collect (query-unienv type uenv)))
 
 (defmethod compile-kernel-function ((engine (eql :lisp)) name args body kernel)
-  (let ((body1 (convert-functions
-                (binarize body))))
+  (let* ((fenv (kernel->funenv kernel))
+         (body1 (convert-functions
+                 (binarize
+                  (convert-implicit-progn
+                   (expand-macro body fenv))))))
     ;; Check free variable existence.
     (let ((vars (kernel->vars kernel)))
       (check-free-variable args body1 vars))
     ;; Type inference.
-    (let* ((tenv (kernel->typenv kernel))
-           (aenv (empty-appenv))
-           (uenv (empty-unienv))
-           (fenv (kernel->funenv kernel)))
+    (let ((tenv (kernel->typenv kernel))
+          (aenv (empty-appenv))
+          (uenv (empty-unienv)))
       (multiple-value-bind (ftype aenv1 uenv1)
           (infer-function name args body1 tenv aenv uenv fenv)
         ;; Compilation.

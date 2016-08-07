@@ -45,7 +45,7 @@
                            (extend-varenv arg type venv))))
                   (reduce #'aux pairs :initial-value venv)))
          (fenv1 (if rec-p
-                    (extend-funenv name name1 ftype args fenv)
+                    (extend-funenv-function name name1 ftype args fenv)
                     fenv)))
     (let ((args1 (compile-arguments args venv1))
           (type-decls (compile-type-declarations ftype args venv1))
@@ -162,11 +162,13 @@
              (let ((type1 (compile-type type)))
                `(let ((,@vars ,form1))
                   (declare (type ,type1 ,@vars))
+                  (declare (ignorable ,@vars))
                   ,(%compile-let bindings1 body venv aenv fenv venv2))))
             ((vector-type-p type)
              (let ((type1 (compile-type (vector-type-base-type type))))
                `(multiple-value-bind ,vars ,form1
                   (declare (type ,type1 ,@vars))
+                  (declare (ignorable ,@vars))
                   ,(%compile-let bindings1 body venv aenv fenv venv2))))
             (t (error "Must not be reached.")))))
       (compile-form body venv1 aenv fenv)))
@@ -184,7 +186,7 @@
               (compile-function name ftype args form venv aenv fenv
                                 :entry-p nil :rec-p rec-p)
             (let ((bindings2 (cons `(,name1 ,args1 ,@form1) bindings1))
-                  (fenv2 (extend-funenv name name1 ftype args fenv1)))
+                  (fenv2 (extend-funenv-function name name1 ftype args fenv1)))
               (%compile-flet op rest body rec-p venv aenv fenv
                              bindings2 fenv2)))))
       `(,op ,bindings1
@@ -225,11 +227,11 @@
 (defun compile-user-apply (form venv aenv fenv)
   (let ((operator (apply-operator form))
         (operands (apply-operands form)))
-    (let ((argc (funenv-argc operator fenv)))
+    (let ((argc (funenv-function-argc operator fenv)))
       (unless (= argc (length operands))
         (error "Invalid number of arguments: ~S" (length operands))))
-    (let ((args (funenv-arguments operator fenv))
-          (arg-types (funenv-arg-types operator fenv)))
+    (let ((args (funenv-function-arguments operator fenv))
+          (arg-types (funenv-function-arg-types operator fenv)))
       (%compile-user-apply operator operands args arg-types
                            venv aenv fenv nil))))
 
@@ -258,7 +260,7 @@
                       ,(%compile-user-apply operator operands1 args1 arg-types1
                                             venv1 aenv fenv vars2))))
                 (t (error "Must not be reached.")))))))
-      (let* ((operator1 (funenv-name1 operator fenv))
-             (return-type (funenv-return-type operator fenv))
+      (let* ((operator1 (funenv-function-name1 operator fenv))
+             (return-type (funenv-function-return-type operator fenv))
              (return-type1 (compile-type return-type)))
         `(the ,return-type1 (,operator1 ,@(nreverse vars1))))))

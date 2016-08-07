@@ -12,7 +12,8 @@
         :avm.api.kernel-manager)
   (:export :defkernel
            :*number-of-threads*
-           :*compile-on-runtime*))
+           :*compile-on-runtime*
+           :defkernel-macro))
 (in-package :avm.api.defkernel)
 
 
@@ -118,9 +119,16 @@
 
 (defvar *compile-on-runtime* nil)
 
-(defmacro defkernel (name args body)
+(defmacro defkernel (name args &body body)
   (if (not *compile-on-runtime*)
       (defkernel-form *kernel-manager* name args body)
       `(eval-when (:compile-toplevel :load-toplevel :execute)
          (eval
           (defkernel-form *kernel-manager* ',name ',args ',body)))))
+
+
+;;
+;; DEFKERNEL-MACRO
+
+(defmacro defkernel-macro (name args &body body)
+  `(kernel-manager-define-macro *kernel-manager* ',name ',args ',body))

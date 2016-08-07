@@ -29,13 +29,15 @@
                    (:file "type")
                    (:file "syntax")
                    (:file "built-in")
+                   (:file "funenv")
+                   (:file "expand-macro")
+                   (:file "convert-implicit-progn")
                    (:file "binarize")
                    (:file "convert-functions")
                    (:file "free-variable")
                    (:file "unienv")
                    (:file "typenv")
                    (:file "appenv")
-                   (:file "funenv")
                    (:file "infer")
                    (:file "kernel")
                    (:file "lang")
@@ -65,7 +67,8 @@
                   ((:file "cuda")
                    (:file "array")
                    (:file "kernel-manager")
-                   (:file "defkernel"))))))
+                   (:file "defkernel")
+                   (:file "macro"))))))
   :description "Efficient and expressive arrayed vector math library with multi-threading and CUDA support."
   :long-description
   #.(with-open-file (stream (merge-pathnames

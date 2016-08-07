@@ -96,6 +96,13 @@ Delays AVM kernel function compilation to runtime if not `nil`. Otherwise, AVM k
     
 To be described.
 
+### [Function] expand-macro, expand-macro-1
+
+    EXPAND-MACRO
+    EXPAND-MACRO-1
+
+To be described.
+
 ### [Macro] defkernel-global
 
     DEFKERNEL-GROBAL
@@ -468,7 +475,15 @@ To be described.
 
 These built-in functions provide mathematical functions.
 
-### [Built-in Macro] ...
+### [Built-in Macro] progn
+
+    PROGN
+
+To be described.
+
+### [Built-in Macro] let*
+
+    LET*
 
 To be described.
 

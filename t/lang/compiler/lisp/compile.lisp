@@ -71,6 +71,7 @@
       (is (compile-let form venv aenv1 fenv)
           '(let ((x0 1))
              (declare (type fixnum x0))
+             (declare (ignorable x0))
              x0)
           "Base case - scalar type.")))
 
@@ -83,6 +84,7 @@
           '(multiple-value-bind (x0 x1)
               (the (values fixnum fixnum) (avm.lang.data::int2-values* 1 1))
              (declare (type fixnum x0 x1))
+             (declare (ignorable x0 x1))
              (avm.lang.data::int2-values* x0 x1))
           "Base case - vector type.")))
 
@@ -93,6 +95,7 @@
       (is (compile-let form venv1 aenv1 fenv)
           '(let ((x1 as0))
              (declare (type int-array x1))
+             (declare (ignorable x1))
              x1)
           "Base case - array type.")))
 
@@ -107,9 +110,11 @@
       (is (compile-let form venv aenv1 fenv)
           '(let ((x0 1))
              (declare (type fixnum x0))
+             (declare (ignorable x0))
              (multiple-value-bind (y1 y2)
                  (the (values fixnum fixnum) (avm.lang.data::int2-values* 1 1))
                (declare (type fixnum y1 y2))
+               (declare (ignorable y1 y2))
                x0))
           "Base case - multiple bindings."))))
 

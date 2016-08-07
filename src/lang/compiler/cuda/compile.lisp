@@ -37,7 +37,7 @@
   (assert (not (and entry-p (not rec-p))))
   (let* ((name1 (compile-name name entry-p nil))
          (fenv1 (if rec-p
-                    (extend-funenv name name1 ftype args fenv)
+                    (extend-funenv-function name name1 ftype args fenv)
                     fenv)))
     (multiple-value-bind (body1 funcs1)
         (compile-form body :tail aenv fenv1 funcs)
@@ -176,7 +176,7 @@
           (multiple-value-bind (name1 funcs1)
               (compile-function name ftype args form aenv fenv funcs
                                 :entry-p nil :rec-p rec-p)
-            (let ((fenv2 (extend-funenv name name1 ftype args fenv1)))
+            (let ((fenv2 (extend-funenv-function name name1 ftype args fenv1)))
               (%compile-flet bindings1 body dest rec-p
                              aenv fenv fenv2 funcs1)))))
       (compile-form body dest aenv fenv1 funcs)))
@@ -203,13 +203,13 @@
         (operands (apply-operands form)))
     (let ((argc (if (built-in-exists-p operator)
                     (built-in-argc operator)
-                    (funenv-argc operator fenv))))
+                    (funenv-function-argc operator fenv))))
       (unless (= argc (length operands))
         (error "Invalid number of arguments: ~S" (length operands))))
     (let ((operator1 (if (built-in-exists-p operator)
                          (built-in-operator :cuda operator
                           (query-appenv form aenv))
-                         (funenv-name1 operator fenv))))
+                         (funenv-function-name1 operator fenv))))
       (cl-pattern:match dest
         (:tail
          (values `(return (,operator1 ,@operands)) funcs))
