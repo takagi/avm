@@ -79,12 +79,11 @@
       (multiple-value-bind (ftype aenv1 uenv1)
           (infer-function name args body1 tenv aenv uenv fenv)
         ;; Compilation.
-        (let ((tenv1 (subst-typenv uenv1 tenv))
-              (aenv2 (subst-appenv uenv1 aenv1))
+        (let ((aenv2 (subst-appenv uenv1 aenv1))
               (ftype1 (subst-ftype uenv1 ftype))
               (venv (empty-varenv)))
           (multiple-value-bind (name1 args1 body2)
-              (compile-function name ftype1 args body1 venv tenv1 aenv2 fenv
+              (compile-function name ftype1 args body1 venv aenv2 fenv
                                 :entry-p t :rec-p t)
             (values name1 ftype1 `(defun ,name1 ,args1 ,@body2))))))))
 
