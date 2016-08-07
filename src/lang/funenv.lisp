@@ -18,7 +18,14 @@
            :funenv-function-arg-types
            :funenv-function-return-type
            :funenv-function-arguments
-           :funenv-function-argc))
+           :funenv-function-argc
+           ;; Macro
+           :extend-funenv-macro
+           :funenv-macro-exists-p
+           :funenv-macro-name
+           :funenv-macro-arguments
+           :funenv-macro-body
+           :funenv-macro-expander))
 (in-package :avm.lang.funenv)
 
 
@@ -72,3 +79,36 @@
 
 (defun funenv-function-argc (name fenv)
   (length (funenv-function-arguments name fenv)))
+
+
+;;
+;; Function environment - macro
+
+(defun extend-funenv-macro (name args body expander fenv)
+  (check-type name avm-symbol)
+  (check-type body list)
+  (check-type expander function)
+  (cons (list name :macro args body expander) fenv))
+
+(defun funenv-macro-exists-p (name fenv)
+  (check-type name avm-symbol)
+  (let ((entry (assoc name fenv)))
+    (and entry
+         (eq (second entry) :macro))))
+
+(defun %lookup-macro (name fenv)
+  (if (funenv-macro-exists-p name fenv)
+      (assoc name fenv)
+      (error "The macro ~S is undefined." name)))
+
+(defun funenv-macro-name (name fenv)
+  (first (%lookup-macro name fenv)))
+
+(defun funenv-macro-arguments (name fenv)
+  (third (%lookup-macro name fenv)))
+
+(defun funenv-macro-body (name fenv)
+  (fourth (%lookup-macro name fenv)))
+
+(defun funenv-macro-expander (name fenv)
+  (fifth (%lookup-macro name fenv)))
