@@ -41,7 +41,8 @@
                   :serial t
                   :components
                   ((:test-file "cuda")
-                   (:test-file "array"))))))
+                   (:test-file "array")
+                   (:test-file "macro"))))))
   :description "Test system for avm"
 
   :defsystem-depends-on (:prove-asdf)

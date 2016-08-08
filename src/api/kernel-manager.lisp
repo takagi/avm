@@ -7,6 +7,7 @@
 (defpackage avm.api.kernel-manager
   (:use :cl
         :avm
+        :avm.lang.symbol
         :avm.lang
         :avm.lang.type
         :avm.lang.kernel)
@@ -14,6 +15,8 @@
            :*kernel-manager*
            :kernel-manager-define-function
            :kernel-manager-define-macro
+           :kernel-manager-expand-macro-1
+           :kernel-manager-expand-macro
            ))
 (in-package :avm.api.kernel-manager)
 
@@ -57,3 +60,23 @@
 (defun kernel-manager-define-macro (manager name args body)
   (let ((kernel (kernel-manager-kernel manager)))
     (kernel-define-macro kernel name args body)))
+
+(defun kernel-manager-expand-macro-1 (manager form)
+  (let ((kernel (kernel-manager-kernel manager)))
+    (if (listp form)
+        (destructuring-bind (name . args) form
+          (if (and (avm-symbol-p name)
+                   (kernel-macro-exists-p kernel name))
+              (let ((expander (kernel-macro-expander kernel name)))
+                (values (funcall expander args) t))
+              (values form nil)))
+        (values form nil))))
+
+(defun kernel-manager-expand-macro (manager form)
+  (labels ((aux (form expanded-p)
+             (multiple-value-bind (form1 newly-expanded-p)
+                 (kernel-manager-expand-macro-1 manager form)
+               (if newly-expanded-p
+                   (aux form1 t)
+                   (values form1 expanded-p)))))
+    (aux form nil)))

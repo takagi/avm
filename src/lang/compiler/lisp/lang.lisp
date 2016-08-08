@@ -22,7 +22,9 @@
         :avm.lang.infer
         :avm.lang.compiler.lisp.varenv
         :avm.lang.compiler.lisp.compile
-        ))
+        )
+  (:shadowing-import-from :avm.lang.expand-macro
+                          :expand-macro))
 (in-package :avm.lang.compiler.lisp.lang)
 
 
