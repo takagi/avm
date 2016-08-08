@@ -15,15 +15,14 @@
 (plan nil)
 
 
+;;
+;; EXPAND-MACRO-1
+
 (defkernel-macro foo (x)
   `(bar ,x))
 
 (defkernel-macro bar (x)
   x)
-
-
-;;
-;; EXPAND-MACRO-1
 
 (subtest "expand-macro-1"
 
