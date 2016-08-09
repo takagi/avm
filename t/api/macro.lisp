@@ -71,4 +71,27 @@
             "Invalid form."))
 
 
+;;
+;; LET*
+
+(subtest "let*"
+
+  (is (expand-macro-1 '(let* ((x 1)
+                              (y 1))
+                         (+ x y)))
+      '(let ((x 1))
+         (let* ((y 1))
+           (+ x y)))
+      "Base case.")
+
+  (is (expand-macro-1 '(let* ()
+                         (+ x y)))
+      '(progn (+ x y))
+      "Base case - no bindings.")
+
+  (is-error (expand-macro '(let* ()))
+            simple-error
+            "Invalid form."))
+
+
 (finalize)
