@@ -8,6 +8,7 @@
   (:use :cl
         :prove
         :avm
+        :avm.lang.data
         :avm.lang.typenv
         :avm.lang.appenv
         :avm.lang.funenv
@@ -54,6 +55,59 @@
                       (avm.lang.data:int3-values* x0 x1 x2)
                       (avm.lang.data:int3-values* y3 y4 y5)))))
                  "Base case - vector type arguments."))))
+
+
+;;
+;; COMPILE-SETF
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (setf (fdefinition 'compile-setf)
+        #'avm.lang.compiler.lisp.compile::compile-setf))
+
+(subtest "compile-setf"
+
+  (with-env (aenv fenv venv)
+    (let ((venv1 (extend-varenv 'x 'int venv)))
+      (is (compile-setf '(setf x 1) venv1 aenv fenv)
+          '(setf x0 1)
+          "Base case - reference place of int type.")))
+
+  (with-env (aenv fenv venv)
+    (let ((form '(setf x #1=(int2 1 1)))
+          (venv1 (extend-varenv 'x '(:vector int 2) venv))
+          (aenv1 (extend-appenv '#1# '(int int (:vector int 2)) aenv)))
+      (is (compile-setf form venv1 aenv1 fenv)
+          '(setf (int2-values* x0 x1)
+                 (the (values fixnum fixnum) (int2-values* 1 1)))
+          "Base case - reference place of int2 type.")))
+
+  (with-env (aenv fenv venv)
+    (let ((form '(setf #2=(int2-x x) 1))
+          (venv1 (extend-varenv 'x '(:vector int 2) venv))
+          (aenv1 (extend-appenv '#2# '((:vector int 2) int) aenv)))
+      (is (compile-setf form venv1 aenv1 fenv)
+          '(setf (int2-x* (int2-values* x0 x1)) 1)
+          "Base case - vector place of int2 type.")))
+
+  (with-env (aenv fenv venv)
+    (let ((form '(setf #3=(aref x 0) 1))
+          (venv1 (extend-varenv 'x '(:array int) venv))
+          (aenv1 (extend-appenv '#3# '((:array int) int int) aenv)))
+      (is (compile-setf form venv1 aenv1 fenv)
+          '(setf (aref x0 0) 1)
+          "Base case - array place of int type.")))
+
+  (with-env (aenv fenv venv)
+    (let ((form '(setf #4=(aref x 0) #5=(int2 1 1)))
+          (venv1 (extend-varenv 'x '(:array (:vector int 2)) venv))
+          (aenv1 (extend-appenv '#4#
+                                '((:array (:vector int 2)) int (:vector int 2))
+                  (extend-appenv '#5# '(int int (:vector int 2))
+                   aenv))))
+      (is (compile-setf form venv1 aenv1 fenv)
+          '(setf (int2-aref* x0 0)
+                 (the (values fixnum fixnum) (int2-values* 1 1)))
+          "Base case - array type of int2 type."))))
 
 
 ;;

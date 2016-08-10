@@ -198,9 +198,16 @@
 (defun compile-setf (form venv aenv fenv)
   (let ((place (setf-place form))
         (value (setf-value form)))
-    (let ((place1 (compile-form place venv aenv fenv))
+    (let ((place1 (compile-place place venv aenv fenv))
           (value1 (compile-form value venv aenv fenv)))
       `(setf ,place1 ,value1))))
+
+(defun compile-place (place venv aenv fenv)
+  ;; Strip type specifier from compiled form to be well optimized.
+  (if (reference-place-p place)
+      (compile-form place venv aenv fenv)
+      (third
+       (compile-form place venv aenv fenv))))
 
 (defun compile-apply (form venv aenv fenv)
   (let ((operator (apply-operator form)))
