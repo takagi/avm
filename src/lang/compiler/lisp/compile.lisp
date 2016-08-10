@@ -65,10 +65,8 @@
 
 (defun compile-type-declarations (ftype args venv)
   `((declare (optimize (speed 3) (safety 0)))
-    ,@(loop for arg in args
-            for vars = (query-varenv arg venv)
-         collect
-           `(declare (ignorable ,@vars)))
+    (declare (ignorable ,@(loop for arg in args
+                             append (query-varenv arg venv))))
     ,@(loop for arg in args
             for vars = (query-varenv arg venv)
             for type in (function-arg-types ftype)
