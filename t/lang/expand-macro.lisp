@@ -9,7 +9,9 @@
         :prove
         :avm
         :avm.lang.funenv
-        :avm.lang.expand-macro))
+        :avm.lang.expand-macro)
+  (:shadowing-import-from :avm.lang.expand-macro
+                          :expand-macro))
 (in-package :avm-test.lang.expand-macro)
 
 
