@@ -51,6 +51,7 @@
   (check-type type function-type)
   (loop for argument in arguments
      do (check-type argument avm-symbol))
+  (check-type body list)
   (unless (= (1- (length type)) (length arguments))
     (error "Invalid number of arguments against type: ~S" (length arguments)))
   (%make-function :name name

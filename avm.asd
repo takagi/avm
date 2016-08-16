@@ -29,6 +29,7 @@
                    (:file "type")
                    (:file "syntax")
                    (:file "built-in")
+                   (:file "convert-implicit-progn")
                    (:file "binarize")
                    (:file "convert-functions")
                    (:file "free-variable")
