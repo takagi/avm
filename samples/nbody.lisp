@@ -12,16 +12,18 @@
 
 
 (defkernel acceleration1 (xi xj)
-  (let* ((r (float4 (- (float4-x xj) (float4-x xi))
+  (let* ((r (float3 (- (float4-x xj) (float4-x xi))
                     (- (float4-y xj) (float4-y xi))
-                    (- (float4-z xj) (float4-z xi))
-                    0.0))
+                    (- (float4-z xj) (float4-z xi))))
          (dist-sqr (+ (dot r r)
                       (* 0.1 0.1)))     ; add softening factor
          (inv-dist (rsqrt dist-sqr))
          (inv-dist-cube (* inv-dist inv-dist inv-dist))
          (scale (* (float4-w xj) inv-dist-cube)))
-    (*. r scale)))
+    (float4 (* scale (float3-x r))
+            (* scale (float3-y r))
+            (* scale (float3-z r))
+            0.0)))
 
 (defkernel acceleration (xi xs0)
   ;; TODO: ITER macro
