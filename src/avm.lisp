@@ -37,6 +37,9 @@
            :*number-of-threads*
            :*compile-on-runtime*
            :defkernel-macro
+           ;; Macro
+           :expand-macro-1
+           :expand-macro
            ;; CUDA
            :with-cuda
            :*use-cuda-p*
