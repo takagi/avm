@@ -92,9 +92,19 @@ Delays AVM kernel function compilation to runtime if not `nil`. Otherwise, AVM k
 
 ### [Macro] defkernel-macro
 
-    DEFKERNEL-MACRO
-    
-To be described.
+    DEFKERNEL-MACRO name args &body body => name
+
+Defines `name` as a macro by associating a macro function with that `name` in the global environment.
+
+**Examples:**
+
+```common-lisp
+(defkernel-macro mac1 (a b)
+  `(+ ,a (* ,b 3)))
+
+(defkernel fill-with-mac1 (xs a b)
+  (setf (aref xs i) (mac1 a b)))
+```
 
 ### [Macro] defkernel-global
 
