@@ -37,7 +37,7 @@
   (assert (not (and entry-p (not rec-p))))
   (let* ((cuda-name (compile-name name entry-p nil))
          (fenv1 (if rec-p
-                    (extend-funenv-function name name1 ftype args fenv)
+                    (extend-funenv-function name cuda-name ftype args fenv)
                     fenv)))
     (multiple-value-bind (body1 funcs1)
         (compile-form body :tail aenv fenv1 funcs)

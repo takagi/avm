@@ -34,6 +34,9 @@
   (setf (fdefinition 'kernel->typenv)
         #'avm.lang.compiler.lisp.lang::kernel->typenv)
 
+  (setf (fdefinition '%extend-macros)
+        #'avm.lang.compiler.lisp.lang::%extend-macros)
+
   (setf (fdefinition 'subst-ftype)
         #'avm.lang.compiler.lisp.lang::subst-ftype))
 
@@ -42,13 +45,14 @@
            (let ((cuda-name (kernel-function-cuda-name kernel name))
                  (type (kernel-function-type kernel name))
                  (args (kernel-function-arguments kernel name)))
-             (extend-funenv name cuda-name type args funenv1))))
+             (extend-funenv-function name cuda-name type args funenv1))))
     (reduce #'aux (kernel-function-names kernel)
             :initial-value funenv)))
 
 (defun kernel->funenv (kernel)
+  (%extend-macros kernel
    (%extend-functions kernel
-    (empty-funenv)))
+    (empty-funenv))))
 
 (defmethod compile-kernel-function ((engine (eql :cuda)) name args body kernel)
   (let* ((fenv (kernel->funenv kernel))
