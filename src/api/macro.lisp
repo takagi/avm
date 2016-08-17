@@ -42,3 +42,18 @@
 
 (defkernel-macro progn (&body body)
   (progn-form body))
+
+
+;;
+;; LET*
+
+(defun let*-form (bindings body)
+  (if bindings
+      (destructuring-bind (binding . bindings1) bindings
+        `(let (,binding)
+           (let* ,bindings1
+             ,@body)))
+      `(progn ,@body)))
+
+(defkernel-macro let* (bindings &body body)
+  (let*-form bindings body))

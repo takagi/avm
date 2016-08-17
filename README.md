@@ -491,6 +491,12 @@ These built-in functions provide mathematical functions.
 
 To be described.
 
+### [Built-in Macro] let*
+
+    LET*
+
+To be described.
+
 ## Concepts
 
 ### Array
