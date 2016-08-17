@@ -8,7 +8,8 @@
   (:use :cl
         :prove
         :avm
-        :avm.api.macro))
+        :avm.api.macro
+        :avm-test.util))
 (in-package :avm-test.api.macro)
 
 
@@ -47,6 +48,27 @@
   (is-values (expand-macro 1)
              '(1 nil)
              "Base case - macro not expanded."))
+
+
+;;
+;; PROGN
+
+(subtest "progn"
+
+  (is (replace-gensym
+       (expand-macro '(progn 1 2)))
+      '(let ((_ 1))
+         (progn 2))
+      "Base case - two forms.")
+
+  (is (replace-gensym
+       (expand-macro '(progn 1)))
+      '1
+      "Base case - a form.")
+
+  (is-error (expand-macro '(progn))
+            simple-error
+            "Invalid form."))
 
 
 (finalize)
