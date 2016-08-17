@@ -21,7 +21,9 @@
         :avm.lang.infer
         :avm.lang.compiler.cuda.k-normal
         :avm.lang.compiler.cuda.compile
-        ))
+        )
+  (:shadowing-import-from :avm.lang.expand-macro
+                          :expand-macro))
 (in-package :avm.lang.compiler.cuda.lang)
 
 

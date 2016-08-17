@@ -106,6 +106,13 @@ Defines `name` as a macro by associating a macro function with that `name` in th
   (setf (aref xs i) (mac1 a b)))
 ```
 
+### [Function] expand-macro, expand-macro-1
+
+    EXPAND-MACRO
+    EXPAND-MACRO-1
+
+To be described.
+
 ### [Macro] defkernel-global
 
     DEFKERNEL-GROBAL
