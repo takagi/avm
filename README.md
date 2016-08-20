@@ -514,7 +514,15 @@ These functions provide arithmetic operations. `+` and `-` accept scalar type an
 
 ### [Built-in Function] \*., .\*, /.
 
-To be described.
+These functions provide vector algebraic operations. `*.` scales a vector type value by a scalar type value. `.*` does the same thing,  letting a scalar value to scale a vector value. `/.` divides a vector type value by a scalar type value. `*.` and `/.` may take more than two arguments, repeatedly applying scalar values.
+
+```common-lisp
+(defkernel scale (x a b)
+  (the float3 (*. x a b)))              ; x is of float3 and a, b are of float
+
+(defkernel scaled (a x)
+  (the float3 (.* a x)))                ; a is of float and x is of float3
+```
 
 ### [Built-in Function] <, >
 
