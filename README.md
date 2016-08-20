@@ -526,7 +526,7 @@ These functions provide vector algebraic operations. `*.` scales a vector type v
 
 ### [Built-in Function] <, >
 
-To be described.
+These functions provide comparison operations for scalar type values.
 
 ### [Built-in Macro] ...
 
