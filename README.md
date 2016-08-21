@@ -528,6 +528,13 @@ These functions provide vector algebraic operations. `*.` scales a vector type v
 
 These functions provide comparison operations for scalar type values.
 
+```common-lisp
+(defkernel one-or-two (a b)
+  (if (< (the float a) b)
+      1
+      2))
+```
+
 ### [Built-in Macro] ...
 
 To be described.
