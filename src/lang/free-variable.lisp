@@ -30,7 +30,7 @@
     ((let-p form) (check-free-variable-let form vars0 vars))
     ((flet-p form) (check-free-variable-flet form vars0 vars))
     ((labels-p form) (check-free-variable-labels form vars0 vars))
-    ((set-p form) (check-free-variable-set form vars0 vars))
+    ((setf-p form) (check-free-variable-setf form vars0 vars))
     ((apply-p form) (check-free-variable-apply form vars0 vars))
     (t (error "The value ~S is an invalid form." form))))
 
@@ -83,9 +83,9 @@
         (body (labels-body form)))
     (%check-free-variable-flet bindings body vars0 vars)))
 
-(defun check-free-variable-set (form vars0 vars)
-  (let ((place (set-place form))
-        (value (set-value form)))
+(defun check-free-variable-setf (form vars0 vars)
+  (let ((place (setf-place form))
+        (value (setf-value form)))
     (%check-free-variable place vars0 vars)
     (%check-free-variable value vars0 vars)))
 

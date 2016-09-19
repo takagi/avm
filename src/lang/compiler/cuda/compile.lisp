@@ -35,33 +35,34 @@
 (defun compile-function (name ftype args body aenv fenv funcs
                          &key entry-p rec-p)
   (assert (not (and entry-p (not rec-p))))
-  (let* ((name1 (compile-name name entry-p nil))
+  (let* ((cuda-name (compile-name name entry-p nil))
          (fenv1 (if rec-p
-                    (extend-funenv name name1 ftype args fenv)
+                    (extend-funenv-function name cuda-name ftype args fenv)
                     fenv)))
     (multiple-value-bind (body1 funcs1)
         (compile-form body :tail aenv fenv1 funcs)
-      (let ((func (%compile-function name1 ftype args body1)))
+      (let ((func (%compile-function cuda-name ftype args body1)))
         (if (not entry-p)
-            (values name1 (cons func funcs1))
+            (values cuda-name (cons func funcs1))
             (multiple-value-bind (caller-name caller-func)
-                (%compile-caller-function name ftype args)
-              (values caller-name (cons caller-func
-                                   (cons func funcs1)))))))))
+                (%compile-caller-function name cuda-name ftype args)
+              (values caller-name
+                      cuda-name
+                      (cons caller-func
+                            (cons func funcs1)))))))))
 
-(defun %compile-function (name1 ftype args body)
+(defun %compile-function (cuda-name ftype args body)
   (let ((args1 (loop for arg in args
                      for type in (function-arg-types ftype)
                      for type1 = (compile-type type)
                   collect (list arg type1)))
         (return-type (compile-type
                       (function-return-type ftype))))
-    `(cl-cuda:defkernel ,name1 (,return-type ,args1)
+    `(cl-cuda:defkernel ,cuda-name (,return-type ,args1)
        ,body)))
 
-(defun %compile-caller-function (name ftype args)
-  (let ((name1 (compile-name name t nil))
-        (caller-name (compile-name name t t))
+(defun %compile-caller-function (name cuda-name ftype args)
+  (let ((caller-name (compile-name name t t))
         (args1 (loop for arg in args
                      for type in (function-arg-types ftype)
                      for type1 = (compile-type type)
@@ -70,7 +71,7 @@
                    (let ((i (+ (* cl-cuda:block-dim-x cl-cuda:block-idx-x)
                                cl-cuda:thread-idx-x)))
                      (when (< i n)
-                       (,name1 ,@args))))))
+                       (,cuda-name ,@args))))))
       (values caller-name func))))
 
 (defun compile-name (name entry-p caller-p)
@@ -92,7 +93,7 @@
     ((let-p form) (compile-let form dest aenv fenv funcs))
     ((flet-p form) (compile-flet form dest aenv fenv funcs))
     ((labels-p form) (compile-labels form dest aenv fenv funcs))
-    ((set-p form) (compile-set form dest aenv fenv funcs))
+    ((setf-p form) (compile-setf form dest aenv fenv funcs))
     ((apply-p form) (compile-apply form dest aenv fenv funcs))
     (t (error "The value ~S is an invalid form." form))))
 
@@ -134,21 +135,21 @@
     (%compile-let bindings body dest aenv fenv funcs)))
 
 (defun type-zero (type)
-  (ecase type
-    (bool nil)
-    (int 0)
-    (float 0.0)
-    (double 0.0d0)
-    ;; (int2 (cl-cuda:int2 0 0))
-    ;; (int3 (cl-cuda:int3 0 0 0))
-    ;; (int4 (cl-cuda:int4 0 0 0 0))
-    ;; (float2 (cl-cuda:float2 0.0 0.0))
-    (float3 '(cl-cuda:float3 0.0 0.0 0.0))
-    (float4 '(cl-cuda:float4 0.0 0.0 0.0 0.0))
-    ;; (double2 (cl-cuda:double2 0.0d0 0.0d0))
-    (double3 '(cl-cuda:double3 0.0d0 0.0d0 0.0d0))
-    (double4 '(cl-cuda:double4 0.0d0 0.0d0 0.0d0 0.0d0))
-    ))
+  (cl-pattern:match type
+    ('bool nil)
+    ('int 0)
+    ('float 0.0)
+    ('double 0.0d0)
+    ;; ((:vector 'int 2) '(cl-cuda:int2 0 0))
+    ;; ((:vector 'int 3) '(cl-cuda:int3 0 0 0))
+    ;; ((:vector 'int 4) '(cl-cuda:int4 0 0 0 0))
+    ;; ((:vector 'float 2) '(cl-cuda:float2 0.0 0.0))
+    ((:vector 'float 3) '(cl-cuda:float3 0.0 0.0 0.0))
+    ((:vector 'float 4) '(cl-cuda:float4 0.0 0.0 0.0 0.0))
+    ;; ((:vector 'double 2) '(cl-cuda:double2 0.0d0 0.0d0))
+    ((:vector 'double 3) '(cl-cuda:double3 0.0d0 0.0d0 0.0d0))
+    ((:vector 'double 4) '(cl-cuda:double4 0.0d0 0.0d0 0.0d0 0.0d0))
+    (_ (error "The value ~S is an invalid type." type))))
 
 (defun %compile-let (bindings body dest aenv fenv funcs)
   (if bindings
@@ -176,7 +177,7 @@
           (multiple-value-bind (name1 funcs1)
               (compile-function name ftype args form aenv fenv funcs
                                 :entry-p nil :rec-p rec-p)
-            (let ((fenv2 (extend-funenv name name1 ftype args fenv1)))
+            (let ((fenv2 (extend-funenv-function name name1 ftype args fenv1)))
               (%compile-flet bindings1 body dest rec-p
                              aenv fenv fenv2 funcs1)))))
       (compile-form body dest aenv fenv1 funcs)))
@@ -186,10 +187,10 @@
         (body (labels-body form)))
     (%compile-flet bindings body dest t aenv fenv fenv funcs)))
 
-(defun compile-set (form dest aenv fenv funcs)
+(defun compile-setf (form dest aenv fenv funcs)
   ;; Assuming K-normalized.
-  (let ((place (set-place form))
-        (value (set-value form)))
+  (let ((place (setf-place form))
+        (value (setf-value form)))
       (multiple-value-bind (value1 funcs1)
           (compile-form value dest aenv fenv funcs)
         (values `(progn
@@ -203,13 +204,13 @@
         (operands (apply-operands form)))
     (let ((argc (if (built-in-exists-p operator)
                     (built-in-argc operator)
-                    (funenv-argc operator fenv))))
+                    (funenv-function-argc operator fenv))))
       (unless (= argc (length operands))
         (error "Invalid number of arguments: ~S" (length operands))))
     (let ((operator1 (if (built-in-exists-p operator)
                          (built-in-operator :cuda operator
                           (query-appenv form aenv))
-                         (funenv-name1 operator fenv))))
+                         (funenv-function-name1 operator fenv))))
       (cl-pattern:match dest
         (:tail
          (values `(return (,operator1 ,@operands)) funcs))

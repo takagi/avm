@@ -16,10 +16,15 @@
   :components ((:module "t"
                 :components
                 ((:test-file "avm")
+                 (:file "util")
                  (:module "lang"
                   :serial t
                   :components
-                  ((:module "compiler"
+                  ((:test-file "expand-macro")
+                   (:test-file "convert-implicit-progn")
+                   (:test-file "convert-functions")
+                   (:test-file "free-variable")
+                   (:module "compiler"
                     :serial t
                     :components
                     ((:module "lisp"
@@ -31,7 +36,13 @@
                       :components
                       ((:test-file "k-normal")
                        (:test-file "compile")))
-                     )))))))
+                     ))))
+                 (:module "api"
+                  :serial t
+                  :components
+                  ((:test-file "cuda")
+                   (:test-file "array")
+                   (:test-file "macro"))))))
   :description "Test system for avm"
 
   :defsystem-depends-on (:prove-asdf)

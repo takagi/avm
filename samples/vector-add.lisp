@@ -12,7 +12,7 @@
 
 
 (defkernel vector-add (c a b)
-  (set (aref c i) (the int (+ (aref a i) (aref b i)))))
+  (setf (aref c i) (the int (+ (aref a i) (aref b i)))))
 
 (defun random-init (array n)
   (dotimes (i n)

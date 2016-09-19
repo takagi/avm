@@ -14,8 +14,6 @@
            :int-array :int2-array :int3-array :int4-array
            :float-array :float2-array :float3-array :float4-array
            :double-array :double2-array :double3-array :double4-array
-           ;; Syntax
-           :set
            ;; Vector type accessors
            :int2-x :int2-y
            :int3-x :int3-y :int3-z
@@ -26,15 +24,22 @@
            :double2-x :double2-y
            :double3-x :double3-y :double3-z
            :double4-x :double4-y :double4-z :double4-w           
-           ;; Arithmetic
-           :*. :.* :/.
+           ;; Vector algebra
+           :*. :.* :/. :dot
+           ;; Mathematical functions
+           :rsqrt
            ;; Built-in variables
            :i :n
            ;; Special variables
            :*kernel-manager*
            ;; DEFKERNEL
            :defkernel
-           :*use-thread-p*
+           :*number-of-threads*
+           :*compile-on-runtime*
+           :defkernel-macro
+           ;; Macro
+           :expand-macro-1
+           :expand-macro
            ;; CUDA
            :with-cuda
            :*use-cuda-p*

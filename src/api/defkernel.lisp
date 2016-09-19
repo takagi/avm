@@ -7,10 +7,13 @@
 (defpackage avm.api.defkernel
   (:use :cl
         :avm
+        :avm.api.cuda
         :avm.api.array
         :avm.api.kernel-manager)
   (:export :defkernel
-           :*use-thread-p*))
+           :*number-of-threads*
+           :*compile-on-runtime*
+           :defkernel-macro))
 (in-package :avm.api.defkernel)
 
 
@@ -45,36 +48,37 @@
                          (avm.api.array::array-device-ptr ,arg)
                          ,arg))))
 
-(defvar *use-thread-p* nil)
+(defvar *number-of-threads* 1)
 
-(defun define-kernel-function-entry-form (name lisp-name cuda-name args)
+(defun defun-entry-function-form (name lisp-name cuda-name args)
   (let ((args1 (map-into (make-list (length args)) #'gensym))
         (arg (gensym)))
     `(defun ,name (,@args &key size)
        (let ((n (or size (compute-dimension (list ,@args)))))
          (declare (type fixnum n))
          (cond
-           (*use-cuda-p*
+           ((cuda-state-used-p)
             ;; Synchronize arrays appearing in arguments.
             (loop for ,arg in (list ,@args)
                when (array-p ,arg)
                do (array-ensure-cuda-up-to-date ,arg)
-                  (set-array-cuda-dirty ,arg))
+                  (array-set-cuda-dirty ,arg))
             ;; Launch kernel.
             (let ,(array-cuda-bindings args1 args)
               (let ((grid-dim (list (ceiling n 64) 1 1))
                     (block-dim '(64 1 1)))
                 (,cuda-name n ,@args1 :grid-dim grid-dim
                                       :block-dim block-dim))))
-           (*use-thread-p*
+           ((< 1 *number-of-threads*)
             ;; Synchronize arrays appearing in arguments.
-            (loop for ,arg in (list ,@args)
-               when (array-p ,arg)
-               do (array-ensure-lisp-up-to-date ,arg)
-                  (set-array-lisp-dirty ,arg))
+            (when (cuda-available-p)
+              (loop for ,arg in (list ,@args)
+                 when (array-p ,arg)
+                 do (array-ensure-lisp-up-to-date ,arg)
+                    (array-set-lisp-dirty ,arg)))
             ;; Launch kernel.
             (let (,@(array-lisp-bindings args1 args)
-                  (ranges (compute-ranges 2 n)))
+                  (ranges (compute-ranges *number-of-threads* n)))
               (let (threads)
                 (dolist (range ranges)
                   (destructuring-bind (begin end) range
@@ -87,28 +91,44 @@
                    do (bt:join-thread thread)))))
            (t
             ;; Synchronize arrays appearing in arguments.
-            (loop for ,arg in (list ,@args)
-               when (array-p ,arg)
-               do (array-ensure-lisp-up-to-date ,arg)
-                  (set-array-lisp-dirty ,arg))
+            (when (cuda-available-p)
+              (loop for ,arg in (list ,@args)
+                 when (array-p ,arg)
+                 do (array-ensure-lisp-up-to-date ,arg)
+                    (array-set-lisp-dirty ,arg)))
             ;; Launch kernel.
             (let ,(array-lisp-bindings args1 args)
               (dotimes (i n)
                 (declare (type fixnum i))
                 (,lisp-name i n ,@args1)))))))))
 
-(defun define-kernel-function (manager name args body)
+(defun defkernel-form (manager name args body)
   (multiple-value-bind (lisp-name lisp-form cuda-name cuda-form
                         include-vector-type-p)
       (kernel-manager-define-function manager name args body)
-    ;; Define Lisp kernel.
-    (eval lisp-form)
-    ;; Define CUDA kernel.
-    (eval cuda-form)
-    ;; Define entry point.
-    (when (not include-vector-type-p)
-      (eval
-       (define-kernel-function-entry-form name lisp-name cuda-name args)))))
+    (let ((entry-function-form
+           (defun-entry-function-form name lisp-name cuda-name args)))
+      `(progn
+         ;; Define Lisp kernel.
+         ,lisp-form
+         ;; Define CUDA kernel.
+         ,cuda-form
+         ;; Define entry function.
+         ,@(when (not include-vector-type-p)
+             (list entry-function-form))))))
 
-(defmacro defkernel (name args body)
-  `(define-kernel-function *kernel-manager* ',name ',args ',body))
+(defvar *compile-on-runtime* nil)
+
+(defmacro defkernel (name args &body body)
+  (if (not *compile-on-runtime*)
+      (defkernel-form *kernel-manager* name args body)
+      `(eval-when (:compile-toplevel :load-toplevel :execute)
+         (eval
+          (defkernel-form *kernel-manager* ',name ',args ',body)))))
+
+
+;;
+;; DEFKERNEL-MACRO
+
+(defmacro defkernel-macro (name args &body body)
+  `(kernel-manager-define-macro *kernel-manager* ',name ',args ',body))

@@ -14,7 +14,7 @@ Efficient and expressive arrayed vector math library with multi-threading and CU
                  0)))
     (let ((a (/ (coerce (- (mod i 2048) 512)) 1024.0))
           (b (/ (coerce (- (/ i 2048) 1024)) 1024.0)))
-      (set (aref xs i) (aux 0.0 0.0 a b 1)))))
+      (setf (aref xs i) (aux 0.0 0.0 a b 1)))))
 
 (defun draw-mandelbrot (pathname xs)
   (with-open-file (out pathname :direction :output
@@ -36,13 +36,13 @@ Efficient and expressive arrayed vector math library with multi-threading and CU
 
 ##Benchmark
 
-AVM's kernel functions run **almost as fast as equivalent C/C++ codes** with SBCL Common Lisp compiler. And we can easily make them run in parallel with just specifying the number of threads we use. Here shows a benchmark of computing 2048x2048 Mandelbrot set.
+AVM's kernel functions run **almost as fast as equivalent C/C++ codes** with SBCL Common Lisp compiler. And we can easily make them run in parallel with just specifying the number of threads we use. Here shows a benchmark of computing 2048x2048 Mandelbrot set and 32768 bodies N-body simulation.
 
-![Mandelbrot](https://docs.google.com/spreadsheets/d/1_-_ucZTxqWXt1lqLOBoNQnMF5Us6ft3UMH9GT2wxWTM/pubchart?oid=1138015283&format=image)
+![Benchmark](https://docs.google.com/spreadsheets/d/1_-_ucZTxqWXt1lqLOBoNQnMF5Us6ft3UMH9GT2wxWTM/pubchart?oid=414899701&format=image)
 
-Additionaly, AVM provides Nvidia CUDA support so we can enormously accelerate computing kernel functions with GPUs.
+Additionally, AVM provides Nvidia CUDA support so we can enormously accelerate computing kernel functions with GPUs.
 
-![Mandelbrot](https://docs.google.com/spreadsheets/d/1_-_ucZTxqWXt1lqLOBoNQnMF5Us6ft3UMH9GT2wxWTM/pubchart?oid=1387493371&format=image)
+![Benchmark with CUDA](https://docs.google.com/spreadsheets/d/1_-_ucZTxqWXt1lqLOBoNQnMF5Us6ft3UMH9GT2wxWTM/pubchart?oid=1016247054&format=image)
 
 These benchmarks are measured on the following environment:
 
@@ -72,16 +72,45 @@ Defines a kernel function. A defined kernel function is callable as if it is an 
 
 ```common-lisp
 (defkernel fill-one (xs a)
-  (set (aref xs i) 1))
+  (setf (aref xs i) 1))
 
 (with-array (xs int 1000)
   (fill-one xs))
 ```
 
+### [Special Variable] \*compile-on-runtime\*
+
+Delays AVM kernel function compilation to runtime if not `nil`. Otherwise, AVM kernel functions are compiled at compile time. Delaying compilation to runtime is useful, at least on SBCL, for debuging AVM kernel definitions because it makes CL debugger show backtrace when they have some errors.
+
+**Example:**
+
+```common-lisp
+(setf *compile-on-runtime* t)
+(defkernel some-error ()
+  (+ 1 1.0))                            ; AVM compile error showing backtrace
+```
+
 ### [Macro] defkernel-macro
 
-    DEFKERNEL-MACRO
-    
+    DEFKERNEL-MACRO name args &body body => name
+
+Defines `name` as a macro by associating a macro function with that `name` in the global environment.
+
+**Examples:**
+
+```common-lisp
+(defkernel-macro mac1 (a b)
+  `(+ ,a (* ,b 3)))
+
+(defkernel fill-with-mac1 (xs a b)
+  (setf (aref xs i) (mac1 a b)))
+```
+
+### [Function] expand-macro, expand-macro-1
+
+    EXPAND-MACRO
+    EXPAND-MACRO-1
+
 To be described.
 
 ### [Macro] defkernel-global
@@ -341,16 +370,16 @@ Double precision floating point type `double` and its derived vector types.
 => 10
 ```
 
-### [Syntax] set
+### [Syntax] setf
 
-    SET place value => result
+    SETF place value => result
 
-`set` changes the value of `place` to be `value` and returns `value` as its result. Accessor forms are acceptable as `place`s.
+`setf` changes the value of `place` to be `value` and returns `value` as its result. Accessor forms are acceptable as `place`s.
 
 **Example:**
 
 ```common-lisp
-(set (aref xs i) (+ (aref xs i) (int2 1 1)))
+(setf (aref xs i) (+ (aref xs i) (int2 1 1)))
 => (int2 1 1)
 ```
 
@@ -414,14 +443,14 @@ Double precision floating point type `double` and its derived vector types.
     INT4-Z form => result
     INT4-W form => result
 
-Accesses each component of `int` derived vector types. The type of `form` should be of each accessor's corresponding vector type. The type of result is `int`. You can read its value as well as destructively set it with SET form.
+Accesses each component of `int` derived vector types. The type of `form` should be of each accessor's corresponding vector type. The type of result is `int`. You can read its value as well as destructively set it with SETF form.
 
 **Example:**
 
 ```common-lisp
 (int2-x (int2 1 2)) => 1
 (let ((x (int2 1 2)))
-  (set (int2-x x) 3)
+  (setf (int2-x x) 3)
   x)
 => (int2 3 2)
 ```
@@ -438,14 +467,14 @@ Accesses each component of `int` derived vector types. The type of `form` should
     FLOAT4-Z form => result
     FLOAT4-W form => result
 
-Accesses each component of `float` derived vector types. The type of `form` should be of each accessor's corresponding vector type. The type of result is `float`. You can read its value as well as destructively set it with SET form.
+Accesses each component of `float` derived vector types. The type of `form` should be of each accessor's corresponding vector type. The type of result is `float`. You can read its value as well as destructively set it with SETF form.
 
 **Example:**
 
 ```common-lisp
 (float2-x (float2 1.0 2.0)) => 1.0
 (let ((x (float2 1.0 2.0)))
-  (set (float2-x x) 3.0)
+  (setf (float2-x x) 3.0)
   x)
 => (float2 3.0 2.0)
 ```
@@ -462,14 +491,14 @@ Accesses each component of `float` derived vector types. The type of `form` shou
     DOUBLE4-Z form => result
     DOUBLE4-W form => result
 
-Accesses each component of `double` derived vector types. The type of `form` should be of each accessor's corresponding vector type. The type of result is `double`. You can read its value as well as destructively set it with SET form.
+Accesses each component of `double` derived vector types. The type of `form` should be of each accessor's corresponding vector type. The type of result is `double`. You can read its value as well as destructively set it with SETF form.
 
 **Example:**
 
 ```common-lisp
 (double2-x (double2 1.0d0 2.0d0)) => 1.0d0
 (let ((x (double2 1.0d0 2.0d0)))
-  (set (double2-x x) 3.0d0)
+  (setf (double2-x x) 3.0d0)
   x)
 => (double2 3.0d0 2.0d0)
 ```
@@ -478,15 +507,15 @@ Accesses each component of `double` derived vector types. The type of `form` sho
 
     AREF array index => result
 
-Accesses the `array` element specified by the `index`. The type of `array` is an array type with base type of `int`, `float`, `double` and their derived vector types. The type of `index` is `int`, and the type of `result` is the base type. You can read its value as well as destructively set it with SET form.
+Accesses the `array` element specified by the `index`. The type of `array` is an array type with base type of `int`, `float`, `double` and their derived vector types. The type of `index` is `int`, and the type of `result` is the base type. You can read its value as well as destructively set it with SETF form.
 
 **Example:**
 
 ```common-lisp
 (aref xs 0) => 1
-(set (aref xs 0) 1) => 1
+(setf (aref xs 0) 1) => 1
 (aref ys 0) => (int2 1 1)
-(set (aref ys 0) (int2 2 2)) => 2
+(setf (aref ys 0) (int2 2 2)) => 2
 ```
 
 ### [Built-in Variable] i, n
@@ -512,7 +541,7 @@ These functions provide arithmetic operations. `+` and `-` accept scalar type an
   (the int2 (+ x y z)))
 ```
 
-### [Built-in Function] \*., .\*, /.
+### [Built-in Function] \*., .\*, /., dot
 
 These functions provide vector algebraic operations. `*.` scales a vector type value by a scalar type value. `.*` does the same thing,  letting a scalar value to scale a vector value. `/.` divides a vector type value by a scalar type value. `*.` and `/.` may take more than two arguments, repeatedly applying scalar values.
 
@@ -535,7 +564,21 @@ These functions provide comparison operations for scalar type values.
       2))
 ```
 
-### [Built-in Macro] ...
+### [Built-in Function] rsqrt
+
+    RSQRT x => result
+
+These built-in functions provide mathematical functions.
+
+### [Built-in Macro] progn
+
+    PROGN
+
+To be described.
+
+### [Built-in Macro] let*
+
+    LET*
 
 To be described.
 
@@ -581,6 +624,22 @@ The initial state is "Not Available". When CUDA state is "Not Available", AVM do
 When CUDA state is "Available", AVM is ready to use CUDA with initializing it and creating CUDA context as well as allocating device memory on `alloc-array`ing, though kernel functions are actually not executed on CUDA in this state. When AVM has this state is that CUDA is available on your machine within `with-cuda` context with its `dev-id` parameter an integer that indicates which GPU you use and `*use-cuda-p*` special variable is set to `nil`.
 
 When CUDA state is "Used", AVM is ready to use CUDA as well as when CUDA state is "Available" and kernel functions are actually executed on CUDA. When AVM has this state is same as when CUDA state is "Available" except that `*use-cuda-p*` special variable is set to not `nil`, which is the default value of that in `with-cuda` context.
+
+### Array states
+
+AVM's arrays have the following state variables:
+
+- CUDA availability
+- CUDA availability on allocation
+- Freed or not
+
+CUDA availability is if CUDA is available or not when array operations are called. CUDA availability on allocation is if CUDA was available or not when arrays are `alloc-array`ed. Free or not is if arrays are already `free-array`ed or not.
+
+How array operations work is dependent of these state variables. For detail, see each array operation's API description.
+
+### Multi-threding state
+
+To be described.
 
 ## Author
 

@@ -24,7 +24,7 @@
                  0)))
     (let ((a (/ (coerce (- (mod i 2048) 512)) 1024.0))
           (b (/ (coerce (- (/ i 2048) 1024)) 1024.0)))
-      (set (aref xs i) (aux 0.0 0.0 a b 1)))))
+      (setf (aref xs i) (aux 0.0 0.0 a b 1)))))
 
 (defun draw-mandelbrot (pathname xs)
   (with-open-file (out pathname :direction :output
@@ -43,4 +43,4 @@
       (time (progn
        (mandelbrot xs)
        (synchronize)))
-      (draw-mandelbrot #P"~/Desktop/mandelbrot.pgm" xs))))
+      (draw-mandelbrot #P"mandelbrot.pgm" xs))))

@@ -17,95 +17,147 @@
 
 (plan nil)
 
-(defmacro with-env ((tenv aenv fenv) &body body)
-  `(let ((,tenv (empty-typenv))
-         (,aenv (empty-appenv))
+(defmacro with-env ((aenv fenv) &body body)
+  `(let ((,aenv (empty-appenv))
          (,fenv (empty-funenv)))
      ,@body))
 
-(setf (fdefinition 'compile-form)
-      #'avm.lang.compiler.cuda.compile::compile-form)
 
+;;
+;; COMPILE-LITERAL
 
-(subtest "Literal"
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (setf (fdefinition 'compile-literal)
+        #'avm.lang.compiler.cuda.compile::compile-literal))
 
-  (with-env (tenv aenv fenv)
-    (is-values (compile-form 1 :tail tenv aenv fenv nil)
-               '(1 cl-cuda:int nil)
-               "Int literal."))
+(subtest "compile-literal"
 
-  (with-env (tenv aenv fenv)
-    (is-values (compile-form 1.0 :tail tenv aenv fenv nil)
-               '(1.0 cl-cuda:float nil)
-               "Float literal."))
+  (with-env (aenv fenv)
+    (is-values (compile-literal 1 :tail aenv fenv nil)
+               '((return 1) nil)
+               "Base case - int literal, tail."))
 
-  (with-env (tenv aenv fenv)
-    (is-values (compile-form 1.0d0 :tail tenv aenv fenv nil)
-               '(1.0d0 cl-cuda:double nil)
-               "Double literal."))
+  (with-env (aenv fenv)
+    (is-values (compile-literal 1 '(:non-tail x) aenv fenv nil)
+               '((set x 1) nil)
+               "Base case - int literal, non-tail."))
 
-  (with-env (tenv aenv fenv)
-    (is-error (compile-form :foo :tail tenv aenv fenv nil)
+  (with-env (aenv fenv)
+    (is-values (compile-literal 1.0 :tail aenv fenv nil)
+               '((return 1.0) nil)
+               "Base case - float literal, tail."))
+
+  (with-env (aenv fenv)
+    (is-values (compile-literal 1.0 '(:non-tail x) aenv fenv nil)
+               '((set x 1.0) nil)
+               "Base case - float literal, non-tail."))
+
+  (with-env (aenv fenv)
+    (is-values (compile-literal 1.0d0 :tail aenv fenv nil)
+               '((return 1.0d0) nil)
+               "Base case - double literal, tail."))
+
+  (with-env (aenv fenv)
+    (is-values (compile-literal 1.0d0 '(:non-tail x) aenv fenv nil)
+               '((set x 1.0d0) nil)
+               "Base case - double literal, non-tail."))
+
+  (with-env (aenv fenv)
+    (is-error (compile-literal 1 :foo aenv fenv nil)
               simple-error
-              "Invalid form."))
-  )
+              "Invalid destination.")))
 
-(subtest "Reference"
 
-  (with-env (tenv aenv fenv)
-    (let ((tenv1 (extend-typenv 'x 'int tenv)))
-      (is (compile-form 'x :tail tenv1 aenv fenv nil)
-          '(return x)
-          "Reference at tail.")))
+;;
+;; COMPILE-REFERENCE
 
-  (with-env (tenv aenv fenv)
-    (let ((tenv1 (extend-typenv 'x 'int tenv)))
-      (is (compile-form 'x '(:non-tail y) tenv1 aenv fenv nil)
-          '(set y x)
-          "Reference at non-tail.")))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (setf (fdefinition 'compile-reference)
+        #'avm.lang.compiler.cuda.compile::compile-reference))
 
-  (with-env (tenv aenv fenv)
-    (is-error (compile-form :foo :tail tenv aenv fenv nil)
+(subtest "compile-reference"
+
+  (with-env (aenv fenv)
+    (is-values (compile-reference 'x :tail aenv fenv nil)
+               '((return x) nil)
+               "Base case - tail."))
+
+  (with-env (aenv fenv)
+    (is-values (compile-reference 'x '(:non-tail y) aenv fenv nil)
+               '((set y x) nil)
+               "Base case - non-tail."))
+
+  (with-env (aenv fenv)
+    (is-error (compile-reference 'x :foo aenv fenv nil)
               simple-error
-              "Invalid form."))
+              "Invalid destination.")))
 
-  (with-env (tenv aenv fenv)
-    (is-error (compile-form 'x :tail tenv aenv fenv nil)
-              simple-error
-              "Invalid form - variable not found."))
 
-  (with-env (tenv aenv fenv)
-    (let ((tenv1 (extend-typenv 'x 'int tenv)))
-      (is-error (compile-form 'x :foo tenv1 aenv fenv nil)
-                simple-error
-                "Invalid destination.")))
-  )
+;;
+;; COMPILE-LET
 
-(subtest "LET"
-    
-  (with-env (tenv aenv fenv)
-    (is (compile-form '(let ((x 1)) x) :tail tenv aenv fenv nil)
-        '(let ((x 0)) (set x 1) (return x))
-        "LET form - int type."))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (setf (fdefinition 'compile-let)
+        #'avm.lang.compiler.cuda.compile::compile-let))
 
-  (with-env (tenv aenv fenv)
-    (is (compile-form '(let ((x 1.0)) x) :tail tenv aenv fenv nil)
-        '(let ((x 0.0)) (set x 1.0) (return x))
-        "LET form - float type."))
+(subtest "compile-let"
 
-  (with-env (tenv aenv fenv)
-    (is (compile-form '(let ((x (let ((y 1)) y))) x) :tail tenv aenv fenv nil)
-        '(let ((x 0)) (let ((y 0)) (set y 1) (set x y)) (return x))
-        "Nested LET form."))
+  (with-env (aenv fenv)
+    (let ((form '(let (#1=(x 1)) x))
+          (aenv1 (extend-appenv '#1# 'int aenv)))
+      (is-values (compile-let form :tail aenv1 fenv nil)
+                 '((let ((x 0)) (set x 1) (return x)) nil)
+                 "Base case - int value, tail.")))
 
-  (with-env (tenv aenv fenv)
-    (let ((tenv1 (extend-typenv 'b 'bool tenv)))
-      (is (compile-form '(let ((x (if b 1 0))) x) :tail tenv1 aenv fenv nil)
-          '(let ((x 0))
-             (if b (set x 1) (set x 0))
-             (return x))
-          "LET form with IF form in binding.")))
-  )
+  (with-env (aenv fenv)
+    (let ((form '(let (#2=(x 1)) x))
+          (aenv1 (extend-appenv '#2# 'int aenv)))
+      (is-values (compile-let form '(:non-tail y) aenv1 fenv nil)
+                 '((let ((x 0)) (set x 1) (set y x)) nil)
+                 "Base case - int value, non-tail.")))
+
+  (with-env (aenv fenv)
+    (let ((form '(let (#3=(x 1.0)) x))
+          (aenv1 (extend-appenv '#3# 'float aenv)))
+      (is-values (compile-let form :tail aenv1 fenv nil)
+                 '((let ((x 0.0)) (set x 1.0) (return x)) nil)
+                 "Base case - float value, tail.")))
+
+  (with-env (aenv fenv)
+    (let ((form '(let (#4=(x 1.0)) x))
+          (aenv1 (extend-appenv '#4# 'float aenv)))
+      (is-values (compile-let form '(:non-tail y) aenv1 fenv nil)
+                 '((let ((x 0.0)) (set x 1.0) (set y x)) nil)
+                 "Base case - float value, non-tail.")))
+
+  (with-env (aenv fenv)
+    (let ((form '(let (#5=(x (let (#6=(y 1))
+                               y)))
+                   x))
+          (aenv1 (extend-appenv '#5# 'int
+                  (extend-appenv '#6# 'int
+                   aenv))))
+      (is-values (compile-let form :tail aenv1 fenv nil)
+                 '((let ((x 0))
+                     (let ((y 0))
+                       (set y 1)
+                       (set x y))
+                     (return x))
+                   nil)
+                 "Base case - nested LET forms.")))
+
+  (with-env (aenv fenv)
+    (let ((form '(let (#7=(x (if b 1 0)))
+                   x))
+          (aenv1 (extend-appenv '#7# 'int aenv)))
+      (is-values (compile-let form :tail aenv1 fenv nil)
+                 '((let ((x 0))
+                     (if b
+                         (set x 1)
+                         (set x 0))
+                     (return x))
+                   nil)
+                 "Base case - with IF form in binding."))))
 
 
 (finalize)

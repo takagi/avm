@@ -16,15 +16,23 @@
            :kernel
            :make-kernel
            :kernel-function-names
+           :kernel-macro-names
            ;; Functions
            :kernel-define-function
            :kernel-function-exists-p
            :kernel-function-name
            :kernel-function-lisp-name
+           :kernel-function-cuda-name
            :kernel-function-type
            :kernel-function-arguments
            :kernel-function-body
            ;; Macros
+           :kernel-define-macro
+           :kernel-macro-exists-p
+           :kernel-macro-name
+           :kernel-macro-arguments
+           :kernel-macro-body
+           :kernel-macro-expander
            ;; Globals
            ;; Constants
            ;; Symbol macros.
@@ -38,20 +46,24 @@
 (defstruct (function (:constructor %make-function))
   (name :name :read-only t)
   (lisp-name :lisp-name :read-only t)
+  (cuda-name :cuda-name :read-only t)
   (type :type :read-only t)
   (arguments :arguments :read-only t)
   (body :body :read-only t))
 
-(defun make-function (name lisp-name type arguments body)
+(defun make-function (name lisp-name cuda-name type arguments body)
   (check-type name avm-symbol)
   (check-type lisp-name symbol)
+  (check-type cuda-name cl-cuda.lang.data:cl-cuda-symbol)
   (check-type type function-type)
   (loop for argument in arguments
      do (check-type argument avm-symbol))
+  (check-type body list)
   (unless (= (1- (length type)) (length arguments))
     (error "Invalid number of arguments against type: ~S" (length arguments)))
   (%make-function :name name
                   :lisp-name lisp-name
+                  :cuda-name cuda-name
                   :type type
                   :arguments arguments
                   :body body))
@@ -68,14 +80,14 @@
 
 (defun make-macro (name arguments body)
   (check-type name avm-symbol)
-  (loop for argument in arguments
-     do (check-type argument avm-symbol))
   (with-gensyms (arguments1)
     (let ((expander (eval `#'(lambda (,arguments1)
                                (destructuring-bind ,arguments ,arguments1
                                  ,@body)))))
-      (%make-macro :name name :arguments arguments
-                   :body body :expander expander))))
+      (%make-macro :name name
+                   :arguments arguments
+                   :body body
+                   :expander expander))))
 
 
 ;;
@@ -132,13 +144,20 @@
         when (function-p entry)
         collect name))))
 
+(defun kernel-macro-names (kernel)
+  (let ((namespace (kernel-function-namespace kernel)))
+    (nreverse
+     (loop for (name entry) on namespace by #'cddr
+        when (macro-p entry)
+        collect name))))
+
 
 ;;
 ;; Kernel - Functions
 
-(defun kernel-define-function (kernel name lisp-name type args body)
+(defun kernel-define-function (kernel name lisp-name cuda-name type args body)
   (symbol-macrolet ((namespace (kernel-function-namespace kernel)))
-    (let ((function (make-function name lisp-name type args body)))
+    (let ((function (make-function name lisp-name cuda-name type args body)))
       (setf (getf namespace name) function)))
   name)
 
@@ -158,6 +177,9 @@
 (defun kernel-function-lisp-name (kernel name)
   (function-lisp-name (%lookup-function kernel name)))
 
+(defun kernel-function-cuda-name (kernel name)
+  (function-cuda-name (%lookup-function kernel name)))
+
 (defun kernel-function-type (kernel name)
   (function-type (%lookup-function kernel name)))
 
@@ -170,6 +192,34 @@
 
 ;;
 ;; Kernel - Macros
+
+(defun kernel-define-macro (kernel name args body)
+  (symbol-macrolet ((namespace (kernel-function-namespace kernel)))
+    (let ((macro (make-macro name args body)))
+      (setf (getf namespace name) macro)))
+  name)
+
+(defun kernel-macro-exists-p (kernel name)
+  (let ((namespace (kernel-function-namespace kernel)))
+    (macro-p (getf namespace name))))
+
+(defun %lookup-macro (kernel name)
+  (unless (kernel-macro-exists-p kernel name)
+    (error "The macro ~S is undefined." name))
+  (let ((namespace (kernel-function-namespace kernel)))
+    (getf namespace name)))
+
+(defun kernel-macro-name (kernel name)
+  (macro-name (%lookup-macro kernel name)))
+
+(defun kernel-macro-arguments (kernel name)
+  (macro-arguments (%lookup-macro kernel name)))
+
+(defun kernel-macro-body (kernel name)
+  (macro-body (%lookup-macro kernel name)))
+
+(defun kernel-macro-expander (kernel name)
+  (macro-expander (%lookup-macro kernel name)))
 
 
 ;;

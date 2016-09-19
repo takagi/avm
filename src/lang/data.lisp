@@ -77,6 +77,9 @@
   (defun type-norm* (type)
     (type-avm type "NORM*"))
 
+  (defun type-dot* (type)
+    (type-avm type "DOT*"))
+
   (defun type-args (type i)
     (loop for arg in (type-elements type)
        collect (intern (format nil "~A~A" arg i) #.*package*)))
@@ -221,6 +224,15 @@
                   (sqrt (+ ,@(loop for x in (type-elements type)
                                 collect `(* ,x ,x))))))
        (export ',(type-norm* type))
+       ;; Define and export FOO-DOT* function.
+       (def-tuple-op ,(type-dot* type)
+           ((a ,type ,(type-args type 1))
+            (b ,type ,(type-args type 2)))
+         (:return ,(type-base-type type)
+                  (+ ,@(loop for x in (type-args type 1)
+                             for y in (type-args type 2)
+                          collect `(* ,x ,y)))))
+       (export ',(type-dot* type))
        )))
 
 (eval-when (:compile-toplevel)

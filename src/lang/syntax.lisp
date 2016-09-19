@@ -33,18 +33,24 @@
            :let-p
            :let-bindings
            :let-body
+           :let-bindings%
+           :let-body%
            ;; FLET
            :flet-p
            :flet-bindings
            :flet-body
+           :flet-bindings%
+           :flet-body%
            ;; LABELS
            :labels-p
            :labels-bindings
            :labels-body
-           ;; SET
-           :set-p
-           :set-place
-           :set-value
+           :labels-bindings%
+           :labels-body%
+           ;; SETF
+           :setf-p
+           :setf-place
+           :setf-value
            ;; Place
            :place-p
            :reference-place-p
@@ -188,9 +194,23 @@
     (t (find-duplicate (cdr xs)))))
 
 (defun let-body (form)
-  ;; TODO: implicit progn.
   (cl-pattern:match form
     (('let _ body) body)
+    (_ (error "The form ~S is malformed." form))))
+
+(defun let-bindings% (form)
+  (cl-pattern:match form
+    (('let bindings . _)
+     (unless (every #'binding-p bindings)
+       (error "The form ~S is malformed." form))
+     (unless (null #1=(find-duplicate (mapcar #'car bindings)))
+       (error "The variable ~A occurs more than once in the LET." #1#))
+     bindings)
+    (_ (error "The form ~S is malformed." form))))
+
+(defun let-body% (form)
+  (cl-pattern:match form
+    (('let _ . body) body)
     (_ (error "The form ~S is malformed." form))))
 
 
@@ -219,9 +239,29 @@
     (_ nil)))
 
 (defun flet-body (form)
-  ;; TODO: implicit progn.
   (cl-pattern:match form
     (('flet _ body) body)
+    (_ (error "The form ~S is malformed." form))))
+
+(defun flet-bindings% (form)
+  (cl-pattern:match form
+    (('flet bindings . _)
+     (unless (every #'fbinding-p% bindings)
+       (error "The form ~S is malformed." form))
+     (unless (not #1=(find-duplicate (mapcar #'car bindings)))
+       (error "The function ~A occurs more than once in the FLET." #1#))
+     bindings)
+    (_ (error "The form ~S is malformed." form))))
+
+(defun fbinding-p% (object)
+  (cl-pattern:match object
+    ((name args . _) (and (avm-symbol-p name)
+                          (every #'avm-symbol-p args)))
+    (_ nil)))
+
+(defun flet-body% (form)
+  (cl-pattern:match form
+    (('flet _ . body) body)
     (_ (error "The form ~S is malformed." form))))
 
 
@@ -244,31 +284,45 @@
     (_ (error "The form ~S is malformed." form))))
 
 (defun labels-body (form)
-  ;; TODO: implicit progn.
   (cl-pattern:match form
     (('labels _ body) body)
     (_ (error "The form ~S is malformed." form))))
 
+(defun labels-bindings% (form)
+  (cl-pattern:match form
+    (('labels bindings . _)
+     (unless (every #'fbinding-p% bindings)
+       (error "The form ~S is malformed." form))
+     (unless (not #1=(find-duplicate (mapcar #'car bindings)))
+       (error "The function ~A occurs more than once in the LABELS." #1#))
+     bindings)
+    (_ (error "The form ~S is malformed." form))))
+
+(defun labels-body% (form)
+  (cl-pattern:match form
+    (('labels _ . body) body)
+    (_ (error "The form ~S is malformed." form))))
+
 
 ;;
-;; SET
+;; SETF
 
-(defun set-p (object)
+(defun setf-p (object)
   (cl-pattern:match object
-    (('set . _) t)
+    (('setf . _) t)
     (_ nil)))
 
-(defun set-place (form)
+(defun setf-place (form)
   (cl-pattern:match form
-    (('set place _)
+    (('setf place _)
      (unless (place-p place)
        (error "The form ~S is malformed." form))
      place)
     (_ (error "The form ~S is malformed." form))))
 
-(defun set-value (form)
+(defun setf-value (form)
   (cl-pattern:match form
-    (('set _ value) value)
+    (('setf _ value) value)
     (_ (error "The form ~S is malformed." form))))
 
 
@@ -334,7 +388,12 @@
 ;; Application
 
 (defun apply-p (object)
-  (consp object))
+  (cl-pattern:match object
+    ((operator . _)
+     (unless (avm-symbol-p operator)
+       (error "Illegal function call: ~S" object))
+     t)
+    (_ nil)))
 
 (defun apply-operator (form)
   (car form))

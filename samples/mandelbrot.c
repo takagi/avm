@@ -10,7 +10,7 @@
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 
-int main(int agc, char** argv)
+int main(int argc, char** argv)
 {
     int i, m;
     int* xs;
