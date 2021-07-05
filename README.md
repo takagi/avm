@@ -34,7 +34,7 @@ Efficient and expressive arrayed vector math library with multi-threading and CU
       (draw-mandelbrot #P"./mandelbrot.pgm" xs))))
 ```
 
-##Benchmark
+## Benchmark
 
 AVM's kernel functions run **almost as fast as equivalent C/C++ codes** with SBCL Common Lisp compiler. And we can easily make them run in parallel with just specifying the number of threads we use. Here shows a benchmark of computing 2048x2048 Mandelbrot set and 32768 bodies N-body simulation.
 
