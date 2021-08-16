@@ -12,8 +12,8 @@ Efficient and expressive arrayed vector math library with multi-threading and CU
                        m
                        (aux x1 y1 a b (+ m 1))))
                  0)))
-    (let ((a (/ (coerce (- (mod i 2048) 512)) 1024.0))
-          (b (/ (coerce (- (/ i 2048) 1024)) 1024.0)))
+    (let ((a (/ (float (- (mod i 2048) 512)) 1024.0))
+          (b (/ (float (- (/ i 2048) 1024)) 1024.0)))
       (setf (aref xs i) (aux 0.0 0.0 a b 1)))))
 
 (defun draw-mandelbrot (pathname xs)

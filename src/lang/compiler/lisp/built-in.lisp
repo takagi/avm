@@ -182,9 +182,8 @@
            (((:array (:vector double 4)) int (:vector double 4)) double4-aref*)
            ))
     (mod (int int int) (((int int int) mod)))
-    (coerce (a b) (((int float) int->float)
-                   ((int double) int->double)
-                   ((float double) float->double)))
+    (float (int float) (((int float) int->float)))
+    (double (int double) (((int double) int->double)))
     ;; Mathematical functions.
     (rsqrt (a a) (((float float) rsqrt)
                   ((double double) rsqrt)))
